@@ -1,29 +1,33 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import * as React from 'react';
+import { createStaticNavigation } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+import HomeScreen from './screens/HomeScreen';
+import DetailsScreen from './screens/DetailsScreen';
+
+//define navigation strucure: I want a stack naviatoit wtha s creen called Home where that screeen shows the HomeScreen component
+const RootStack = createNativeStackNavigator({
+  initialRouteName: 'Home',
+  screens: {
+    Home: {
+      screen: HomeScreen,
+      options: {
+        title: 'My Home',
+      },
+    },
+   Details: {
+    screen: DetailsScreen,
+      options: {
+        title: 'Details Page',
+      },
+   },
+  },
+});
+
+//turn the blueprnit into actual navigation. conversts into a react component. Can render the Navigation component
+const Navigation = createStaticNavigation(RootStack);
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome to TITO</Text>
-      <Text style={styles.subTitle}>Time in Time out</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+  return <Navigation />
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  subTitle: {
-    fontSize: 20,
-  }
-});
