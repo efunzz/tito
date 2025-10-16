@@ -12,13 +12,13 @@ const RootStack = createNativeStackNavigator({
     Home: {
       screen: HomeScreen,
       options: {
-        title: 'My Home',
+        headerShown: false,
       },
     },
    Details: {
     screen: DetailsScreen,
       options: {
-        title: 'Details Page',
+        headerShown: false,
       },
    },
   },
