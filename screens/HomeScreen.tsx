@@ -202,19 +202,6 @@ export default function HomeScreen() {
           </Text>
         </TouchableOpacity>
       </View>
-
-      {/* Quick Stats */}
-      <View style={styles.quickStats}>
-        <View style={styles.quickStatItem}>
-          <Text style={styles.quickStatValue}>0h</Text>
-          <Text style={styles.quickStatLabel}>Hours Today</Text>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.quickStatItem}>
-          <Text style={styles.quickStatValue}>0</Text>
-          <Text style={styles.quickStatLabel}>Shifts</Text>
-        </View>
-      </View>
     </View>
   );
 }
@@ -302,7 +289,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-    marginBottom: 24,
   },
   actionCard: {
     width: '48%',
@@ -344,38 +330,5 @@ const styles = StyleSheet.create({
   },
   disabledLabel: {
     color: COLORS.textDisabled,
-  },
-
-  // Quick Stats
-  quickStats: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.cardBg,
-    marginHorizontal: 20,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  quickStatItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  quickStatValue: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-    marginBottom: 4,
-  },
-  quickStatLabel: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  divider: {
-    width: 1,
-    backgroundColor: COLORS.cardDisabled,
-    marginHorizontal: 20,
   },
 });
