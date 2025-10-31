@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
-export default function CustomTabBar({ state, descriptors, navigation }) {
+export default function CustomTabBar({ state, descriptors, navigation }:BottomTabBarProps) {
   return (
     <View style={styles.tabBarContainer}>
       {/* Left side - compact tab bar with 3 icons */}
