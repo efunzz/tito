@@ -165,7 +165,7 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Tito</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Stats')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Details')}>
           <Feather name="bar-chart-2" size={24} color={COLORS.textPrimary} />
         </TouchableOpacity>
       </View>
