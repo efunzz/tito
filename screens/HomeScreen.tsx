@@ -24,6 +24,7 @@ const COLORS = {
   background: '#E8E5E0',
   cardBg: '#FFFFFF',
   cardDisabled: '#D4D1CC',
+  darkCard: '#1A1A1A',
   primary: '#FF5555',
   textPrimary: '#1A1A1A',
   textSecondary: '#8E8E93',
@@ -211,10 +212,11 @@ export default function HomeScreen() {
 
         {/* Action Buttons Grid (2x2) */}
         <View style={styles.buttonGrid}>
-          {/* Clock In Button */}
+          {/* Clock In Button - Red */}
           <TouchableOpacity 
             style={[
               styles.actionCard,
+              styles.redActionCard,
               status !== 'idle' && styles.disabledCard
             ]}
             onPress={handleClockIn}
@@ -222,26 +224,28 @@ export default function HomeScreen() {
           >
             <View style={[
               styles.iconCircle,
-              status === 'idle' ? styles.activeIconCircle : styles.disabledIconCircle
+              status === 'idle' ? styles.redIconCircle : styles.disabledIconCircle
             ]}>
               <Feather 
                 name="log-in" 
                 size={24} 
-                color={status === 'idle' ? COLORS.primary : COLORS.textDisabled} 
+                color="#FFFFFF"
               />
             </View>
             <Text style={[
               styles.actionLabel,
+              styles.whiteLabel,
               status !== 'idle' && styles.disabledLabel
             ]}>
               Clock In
             </Text>
           </TouchableOpacity>
 
-          {/* Clock Out Button */}
+          {/* Clock Out Button - Dark */}
           <TouchableOpacity 
             style={[
               styles.actionCard,
+              styles.darkActionCard,
               status === 'idle' && styles.disabledCard
             ]}
             onPress={handleClockOut}
@@ -249,26 +253,28 @@ export default function HomeScreen() {
           >
             <View style={[
               styles.iconCircle,
-              status !== 'idle' ? styles.activeIconCircle : styles.disabledIconCircle
+              status !== 'idle' ? styles.darkIconCircle : styles.disabledIconCircle
             ]}>
               <Feather 
                 name="log-out" 
                 size={24} 
-                color={status !== 'idle' ? COLORS.primary : COLORS.textDisabled} 
+                color="#FFFFFF"
               />
             </View>
             <Text style={[
               styles.actionLabel,
+              styles.whiteLabel,
               status === 'idle' && styles.disabledLabel
             ]}>
               Clock Out
             </Text>
           </TouchableOpacity>
 
-          {/* Start Break Button */}
+          {/* Start Break Button - Red */}
           <TouchableOpacity 
             style={[
               styles.actionCard,
+              styles.redActionCard,
               status !== 'clocked-in' && styles.disabledCard
             ]}
             onPress={handleStartBreak}
@@ -276,26 +282,28 @@ export default function HomeScreen() {
           >
             <View style={[
               styles.iconCircle,
-              status === 'clocked-in' ? styles.activeIconCircle : styles.disabledIconCircle
+              status === 'clocked-in' ? styles.redIconCircle : styles.disabledIconCircle
             ]}>
               <Ionicons 
                 name="cafe-outline" 
                 size={24} 
-                color={status === 'clocked-in' ? COLORS.primary : COLORS.textDisabled} 
+                color="#FFFFFF"
               />
             </View>
             <Text style={[
               styles.actionLabel,
+              styles.whiteLabel,
               status !== 'clocked-in' && styles.disabledLabel
             ]}>
               Start Break
             </Text>
           </TouchableOpacity>
 
-          {/* End Break Button */}
+          {/* End Break Button - Dark */}
           <TouchableOpacity 
             style={[
               styles.actionCard,
+              styles.darkActionCard,
               status !== 'on-break' && styles.disabledCard
             ]}
             onPress={handleEndBreak}
@@ -303,16 +311,17 @@ export default function HomeScreen() {
           >
             <View style={[
               styles.iconCircle,
-              status === 'on-break' ? styles.activeIconCircle : styles.disabledIconCircle
+              status === 'on-break' ? styles.darkIconCircle : styles.disabledIconCircle
             ]}>
               <Ionicons 
                 name="play-outline" 
                 size={24} 
-                color={status === 'on-break' ? COLORS.primary : COLORS.textDisabled} 
+                color="#FFFFFF"
               />
             </View>
             <Text style={[
               styles.actionLabel,
+              styles.whiteLabel,
               status !== 'on-break' && styles.disabledLabel
             ]}>
               End Break
@@ -420,7 +429,6 @@ const styles = StyleSheet.create({
   actionCard: {
     width: '48%',
     aspectRatio: 1,
-    backgroundColor: COLORS.cardBg,
     borderRadius: 20,
     padding: 20,
     justifyContent: 'center',
@@ -430,6 +438,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 3,
+  },
+  redActionCard: {
+    backgroundColor: COLORS.primary,
+  },
+  darkActionCard: {
+    backgroundColor: COLORS.darkCard,
   },
   disabledCard: {
     backgroundColor: COLORS.cardDisabled,
@@ -443,8 +457,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  activeIconCircle: {
-    backgroundColor: 'rgba(255, 85, 85, 0.1)',
+  redIconCircle: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  darkIconCircle: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   disabledIconCircle: {
     backgroundColor: 'rgba(184, 184, 184, 0.1)',
@@ -452,8 +469,10 @@ const styles = StyleSheet.create({
   actionLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.textPrimary,
     textAlign: 'center',
+  },
+  whiteLabel: {
+    color: '#FFFFFF',
   },
   disabledLabel: {
     color: COLORS.textDisabled,
