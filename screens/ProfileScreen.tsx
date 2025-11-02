@@ -1,9 +1,11 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import MonthlyGoalModal from '../components/MonthlyGoalModal';
+import HourlyRateModal from '../components/HourlyRateModal';
 // Define navigation types
 type RootStackParamList = {
   Home: undefined;
@@ -31,6 +33,51 @@ export default function ProfileScreen() {
   // State for settings
   const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
   const [autoClockOut, setAutoClockOut] = useState<boolean>(false);
+  
+  // Work settings state
+  const [hourlyRate, setHourlyRate] = useState<number>(15);
+  const [monthlyGoal, setMonthlyGoal] = useState<number>(1000);
+  
+  // Modal visibility state
+  const [hourlyRateModalVisible, setHourlyRateModalVisible] = useState<boolean>(false);
+  const [monthlyGoalModalVisible, setMonthlyGoalModalVisible] = useState<boolean>(false);
+
+  // Load saved data when component mounts
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const savedRate = await AsyncStorage.getItem('hourlyRate');
+      const savedGoal = await AsyncStorage.getItem('monthlyGoal');
+      
+      if (savedRate) setHourlyRate(parseFloat(savedRate));
+      if (savedGoal) setMonthlyGoal(parseFloat(savedGoal));
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
+
+  const handleSaveHourlyRate = async (rate: number) => {
+    setHourlyRate(rate);
+    try {
+      await AsyncStorage.setItem('hourlyRate', rate.toString());
+      console.log('Hourly rate saved:', rate);
+    } catch (error) {
+      console.error('Error saving hourly rate:', error);
+    }
+  };
+
+  const handleSaveMonthlyGoal = async (goal: number) => {
+    setMonthlyGoal(goal);
+    try {
+      await AsyncStorage.setItem('monthlyGoal', goal.toString());
+      console.log('Monthly goal saved:', goal);
+    } catch (error) {
+      console.error('Error saving monthly goal:', error);
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -85,13 +132,17 @@ export default function ProfileScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Work Settings</Text>
         
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={styles.menuIconWrapper}>
-            <Ionicons name="cash-outline" size={20} color={COLORS.textPrimary} />
+        {/* Hourly Rate - Red accent (primary financial setting) */}
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => setHourlyRateModalVisible(true)}
+        >
+          <View style={styles.redIconWrapper}>
+            <Ionicons name="cash-outline" size={20} color="#FFFFFF" />
           </View>
           <View style={styles.menuContent}>
             <Text style={styles.menuTitle}>Hourly Rate</Text>
-            <Text style={styles.menuSubtitle}>$15.00 per hour</Text>
+            <Text style={styles.menuSubtitle}>${hourlyRate.toFixed(2)} per hour</Text>
           </View>
           <Feather name="chevron-right" size={20} color={COLORS.textLight} />
         </TouchableOpacity>
@@ -107,13 +158,17 @@ export default function ProfileScreen() {
           <Feather name="chevron-right" size={20} color={COLORS.textLight} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={styles.menuIconWrapper}>
-            <MaterialCommunityIcons name="calendar-month" size={20} color={COLORS.textPrimary} />
+        {/* Monthly Goal - Dark accent (important target) */}
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => setMonthlyGoalModalVisible(true)}
+        >
+          <View style={styles.darkIconWrapper}>
+            <MaterialCommunityIcons name="calendar-month" size={20} color="#FFFFFF" />
           </View>
           <View style={styles.menuContent}>
             <Text style={styles.menuTitle}>Monthly Goal</Text>
-            <Text style={styles.menuSubtitle}>$1,000</Text>
+            <Text style={styles.menuSubtitle}>${monthlyGoal.toLocaleString()}</Text>
           </View>
           <Feather name="chevron-right" size={20} color={COLORS.textLight} />
         </TouchableOpacity>
@@ -155,9 +210,10 @@ export default function ProfileScreen() {
           />
         </View>
 
+        {/* Export Data - Dark accent (important action) */}
         <TouchableOpacity style={styles.menuItem}>
-          <View style={styles.menuIconWrapper}>
-            <Feather name="download" size={20} color={COLORS.textPrimary} />
+          <View style={styles.darkIconWrapper}>
+            <Feather name="download" size={20} color="#FFFFFF" />
           </View>
           <View style={styles.menuContent}>
             <Text style={styles.menuTitle}>Export Data</Text>
@@ -212,6 +268,21 @@ export default function ProfileScreen() {
       </TouchableOpacity>
 
       <View style={{ height: 100 }} />
+
+      {/* Modals */}
+      <HourlyRateModal
+        visible={hourlyRateModalVisible}
+        onClose={() => setHourlyRateModalVisible(false)}
+        currentRate={hourlyRate}
+        onSave={handleSaveHourlyRate}
+      />
+
+      <MonthlyGoalModal
+        visible={monthlyGoalModalVisible}
+        onClose={() => setMonthlyGoalModalVisible(false)}
+        currentGoal={monthlyGoal}
+        onSave={handleSaveMonthlyGoal}
+      />
     </ScrollView>
   );
 }
@@ -381,6 +452,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
+  darkIconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.darkCard,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  redIconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
   menuContent: {
     flex: 1,
   },
@@ -417,3 +506,12 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
 });
+
+
+
+
+
+
+
+
+
