@@ -129,7 +129,7 @@ export default function HomeScreen() {
 
     const newShift: Shift = {
       id: Date.now().toString(),
-      date: now.toLocaleDateString(),
+      date: now.toISOString().split('T')[0], // ✅ ISO FORMAT: "2025-11-03"
       clockIn: clockInTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       clockOut: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       breaks: currentBreaks,
@@ -154,9 +154,10 @@ export default function HomeScreen() {
     console.log('Shift saved:', newShift);
   };
 
-  // Calculate today's earnings
+  // Calculate today's earnings - ✅ FIXED TO USE ISO FORMAT
+  const today = new Date().toISOString().split('T')[0]; // "2025-11-03"
   const todayEarnings = shifts
-    .filter(shift => shift.date === new Date().toLocaleDateString())
+    .filter(shift => shift.date === today)
     .reduce((total, shift) => total + shift.earnings, 0);
 
   return (
@@ -329,15 +330,38 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Debug: Show recent shifts */}
+        {/* Recent Shifts */}
         {shifts.length > 0 && (
-          <View style={styles.debugContainer}>
-            <Text style={styles.debugTitle}>Recent Shifts (Debug)</Text>
-            {shifts.slice(-3).reverse().map(shift => (
-              <View key={shift.id} style={styles.debugShift}>
-                <Text style={styles.debugText}>{shift.date}</Text>
-                <Text style={styles.debugText}>{shift.clockIn} - {shift.clockOut}</Text>
-                <Text style={styles.debugText}>{shift.totalHours}h = ${shift.earnings}</Text>
+          <View style={styles.shiftsSection}>
+            <View style={styles.shiftsSectionHeader}>
+              <Text style={styles.shiftsTitle}>Recent Shifts</Text>
+              <Text style={styles.shiftsCount}>{shifts.length}</Text>
+            </View>
+            
+            {shifts.slice(-3).reverse().map((shift, index) => (
+              <View key={shift.id} style={styles.shiftCard}>
+                <View style={styles.shiftHeader}>
+                  <Text style={styles.shiftDate}>{shift.date}</Text>
+                  <View style={styles.earningsBadge}>
+                    <Text style={styles.earningsText}>${shift.earnings.toFixed(2)}</Text>
+                  </View>
+                </View>
+                
+                <View style={styles.shiftDetails}>
+                  <View style={styles.shiftDetailItem}>
+                    <Feather name="clock" size={14} color={COLORS.textSecondary} />
+                    <Text style={styles.shiftDetailText}>
+                      {shift.clockIn} - {shift.clockOut}
+                    </Text>
+                  </View>
+                  
+                  <View style={styles.shiftDetailItem}>
+                    <Feather name="activity" size={14} color={COLORS.textSecondary} />
+                    <Text style={styles.shiftDetailText}>
+                      {shift.totalHours}h @ ${shift.hourlyRate}/hr
+                    </Text>
+                  </View>
+                </View>
               </View>
             ))}
           </View>
@@ -477,25 +501,72 @@ const styles = StyleSheet.create({
   disabledLabel: {
     color: COLORS.textDisabled,
   },
-  debugContainer: {
+  shiftsSection: {
     marginHorizontal: 20,
     marginBottom: 100,
-    padding: 16,
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 12,
   },
-  debugTitle: {
-    fontSize: 16,
+  shiftsSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  shiftsTitle: {
+    fontSize: 20,
     fontWeight: '600',
     color: COLORS.textPrimary,
+  },
+  shiftsCount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+    backgroundColor: COLORS.cardBg,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  shiftCard: {
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  shiftHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
   },
-  debugShift: {
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.cardDisabled,
+  shiftDate: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
   },
-  debugText: {
+  earningsBadge: {
+    backgroundColor: COLORS.background,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  earningsText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  shiftDetails: {
+    gap: 8,
+  },
+  shiftDetailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  shiftDetailText: {
     fontSize: 13,
     color: COLORS.textSecondary,
   },

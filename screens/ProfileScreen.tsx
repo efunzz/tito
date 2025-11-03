@@ -9,7 +9,6 @@ import MonthlyGoalModal from '../components/MonthlyGoalModal';
 import WorkHoursModal from '../components/WorkHoursModal';
 import ExportDataModal from '../components/ExportDataModal';
 
-
 // Define navigation types
 type RootStackParamList = {
   Home: undefined;
@@ -17,6 +16,18 @@ type RootStackParamList = {
 };
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Profile'>;
+
+// Shift type (matches HomeScreen)
+type Shift = {
+  id: string;
+  date: string;
+  clockIn: string;
+  clockOut: string | null;
+  breaks: { start: string; end: string | null }[];
+  totalHours: number;
+  hourlyRate: number;
+  earnings: number;
+};
 
 // Cardy Pay Color Palette
 const COLORS = {
@@ -51,13 +62,20 @@ export default function ProfileScreen() {
   const [monthlyGoal, setMonthlyGoal] = useState<number>(1000);
   const [workStartTime, setWorkStartTime] = useState<string>('09:00'); // 24-hour format
   const [workEndTime, setWorkEndTime] = useState<string>('17:00');     // 24-hour format
-
+  
+  // Shifts data for stats
+  const [shifts, setShifts] = useState<Shift[]>([]);
   
   // Modal visibility state
   const [hourlyRateModalVisible, setHourlyRateModalVisible] = useState<boolean>(false);
   const [monthlyGoalModalVisible, setMonthlyGoalModalVisible] = useState<boolean>(false);
   const [workHoursModalVisible, setWorkHoursModalVisible] = useState<boolean>(false);
   const [exportDataModalVisible, setExportDataModalVisible] = useState<boolean>(false);
+
+  // Calculate stats from shifts
+  const totalHours = shifts.reduce((sum, shift) => sum + shift.totalHours, 0);
+  const totalEarnings = shifts.reduce((sum, shift) => sum + shift.earnings, 0);
+  const totalShifts = shifts.length;
 
   // Load saved data when component mounts
   useEffect(() => {
@@ -70,11 +88,13 @@ export default function ProfileScreen() {
       const savedGoal = await AsyncStorage.getItem('monthlyGoal');
       const savedStartTime = await AsyncStorage.getItem('workStartTime');
       const savedEndTime = await AsyncStorage.getItem('workEndTime');
+      const savedShifts = await AsyncStorage.getItem('shifts');
       
       if (savedRate) setHourlyRate(parseFloat(savedRate));
       if (savedGoal) setMonthlyGoal(parseFloat(savedGoal));
       if (savedStartTime) setWorkStartTime(savedStartTime);
       if (savedEndTime) setWorkEndTime(savedEndTime);
+      if (savedShifts) setShifts(JSON.parse(savedShifts));
     } catch (error) {
       console.error('Error loading settings:', error);
     }
@@ -145,17 +165,17 @@ export default function ProfileScreen() {
         {/* Quick Stats */}
         <View style={styles.quickStats}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>42</Text>
+            <Text style={styles.statValue}>{totalHours.toFixed(0)}</Text>
             <Text style={styles.statLabel}>Hours</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>$620</Text>
+            <Text style={styles.statValue}>${totalEarnings.toFixed(0)}</Text>
             <Text style={styles.statLabel}>Earned</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>5</Text>
+            <Text style={styles.statValue}>{totalShifts}</Text>
             <Text style={styles.statLabel}>Shifts</Text>
           </View>
         </View>
@@ -332,6 +352,7 @@ export default function ProfileScreen() {
         currentEndTime={workEndTime}
         onSave={handleSaveWorkHours}
       />
+
       <ExportDataModal
         visible={exportDataModalVisible}
         onClose={() => setExportDataModalVisible(false)}
