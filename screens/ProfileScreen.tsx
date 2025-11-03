@@ -4,8 +4,10 @@ import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import MonthlyGoalModal from '../components/MonthlyGoalModal';
 import HourlyRateModal from '../components/HourlyRateModal';
+import MonthlyGoalModal from '../components/MonthlyGoalModal';
+import WorkHoursModal from '../components/WorkHoursModal';
+
 // Define navigation types
 type RootStackParamList = {
   Home: undefined;
@@ -30,6 +32,14 @@ const COLORS = {
 export default function ProfileScreen() {
   const navigation = useNavigation<NavigationProp>();
   
+  // Helper function to format 24-hour to 12-hour
+  const formatTime12Hour = (time24: string): string => {
+    const [hour, minute] = time24.split(':').map(Number);
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${minute.toString().padStart(2, '0')} ${period}`;
+  };
+  
   // State for settings
   const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
   const [autoClockOut, setAutoClockOut] = useState<boolean>(false);
@@ -37,10 +47,13 @@ export default function ProfileScreen() {
   // Work settings state
   const [hourlyRate, setHourlyRate] = useState<number>(15);
   const [monthlyGoal, setMonthlyGoal] = useState<number>(1000);
+  const [workStartTime, setWorkStartTime] = useState<string>('09:00'); // 24-hour format
+  const [workEndTime, setWorkEndTime] = useState<string>('17:00');     // 24-hour format
   
   // Modal visibility state
   const [hourlyRateModalVisible, setHourlyRateModalVisible] = useState<boolean>(false);
   const [monthlyGoalModalVisible, setMonthlyGoalModalVisible] = useState<boolean>(false);
+  const [workHoursModalVisible, setWorkHoursModalVisible] = useState<boolean>(false);
 
   // Load saved data when component mounts
   useEffect(() => {
@@ -51,9 +64,13 @@ export default function ProfileScreen() {
     try {
       const savedRate = await AsyncStorage.getItem('hourlyRate');
       const savedGoal = await AsyncStorage.getItem('monthlyGoal');
+      const savedStartTime = await AsyncStorage.getItem('workStartTime');
+      const savedEndTime = await AsyncStorage.getItem('workEndTime');
       
       if (savedRate) setHourlyRate(parseFloat(savedRate));
       if (savedGoal) setMonthlyGoal(parseFloat(savedGoal));
+      if (savedStartTime) setWorkStartTime(savedStartTime);
+      if (savedEndTime) setWorkEndTime(savedEndTime);
     } catch (error) {
       console.error('Error loading settings:', error);
     }
@@ -76,6 +93,18 @@ export default function ProfileScreen() {
       console.log('Monthly goal saved:', goal);
     } catch (error) {
       console.error('Error saving monthly goal:', error);
+    }
+  };
+
+  const handleSaveWorkHours = async (startTime: string, endTime: string) => {
+    setWorkStartTime(startTime);
+    setWorkEndTime(endTime);
+    try {
+      await AsyncStorage.setItem('workStartTime', startTime);
+      await AsyncStorage.setItem('workEndTime', endTime);
+      console.log('Work hours saved:', startTime, '-', endTime);
+    } catch (error) {
+      console.error('Error saving work hours:', error);
     }
   };
 
@@ -147,13 +176,18 @@ export default function ProfileScreen() {
           <Feather name="chevron-right" size={20} color={COLORS.textLight} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => setWorkHoursModalVisible(true)}
+        >
           <View style={styles.menuIconWrapper}>
             <Feather name="clock" size={20} color={COLORS.textPrimary} />
           </View>
           <View style={styles.menuContent}>
             <Text style={styles.menuTitle}>Work Hours</Text>
-            <Text style={styles.menuSubtitle}>9:00 AM - 5:00 PM</Text>
+            <Text style={styles.menuSubtitle}>
+              {formatTime12Hour(workStartTime)} - {formatTime12Hour(workEndTime)}
+            </Text>
           </View>
           <Feather name="chevron-right" size={20} color={COLORS.textLight} />
         </TouchableOpacity>
@@ -282,6 +316,14 @@ export default function ProfileScreen() {
         onClose={() => setMonthlyGoalModalVisible(false)}
         currentGoal={monthlyGoal}
         onSave={handleSaveMonthlyGoal}
+      />
+
+      <WorkHoursModal
+        visible={workHoursModalVisible}
+        onClose={() => setWorkHoursModalVisible(false)}
+        currentStartTime={workStartTime}
+        currentEndTime={workEndTime}
+        onSave={handleSaveWorkHours}
       />
     </ScrollView>
   );
@@ -506,12 +548,3 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
 });
-
-
-
-
-
-
-
-
-
