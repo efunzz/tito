@@ -1,9 +1,11 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Svg, { Circle } from 'react-native-svg';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React from 'react';
 
 // Define navigation types
 type RootStackParamList = {
@@ -17,8 +19,21 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Details'>;
 interface WeekDay {
   day: string;
   date: number;
+  fullDate: string; // Added for matching with shift dates
   active: boolean;
 }
+
+// Shift type (matches HomeScreen)
+type Shift = {
+  id: string;
+  date: string;
+  clockIn: string;
+  clockOut: string | null;
+  breaks: { start: string; end: string | null }[];
+  totalHours: number;
+  hourlyRate: number;
+  earnings: number;
+};
 
 // Cardy Pay Color Palette
 const COLORS = {
@@ -36,31 +51,140 @@ const COLORS = {
 export default function DetailsScreen() {
   const navigation = useNavigation<NavigationProp>();
   
-  // Placeholder data
-  const [monthlyGoal] = useState<number>(1000);
-  const [earnedSoFar] = useState<number>(620);
-  const [hoursWorked] = useState<number>(42);
-  const [shiftsWorked] = useState<number>(5);
+  // Data from AsyncStorage
+  const [monthlyGoal, setMonthlyGoal] = useState<number>(1000);
+  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]); // ISO format
+  const [weekDays, setWeekDays] = useState<WeekDay[]>([]);
   
-  const progressPercentage: number = Math.round((earnedSoFar / monthlyGoal) * 100);
-  const averagePerShift: string = (earnedSoFar / shiftsWorked).toFixed(2);
-  const remaining: number = monthlyGoal - earnedSoFar;
+  // Load data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadData();
+      generateWeekDays();
+    }, [])
+  );
+
+  const loadData = async () => {
+    try {
+      const savedGoal = await AsyncStorage.getItem('monthlyGoal');
+      const savedShifts = await AsyncStorage.getItem('shifts');
+      
+      if (savedGoal) setMonthlyGoal(parseFloat(savedGoal));
+      if (savedShifts) setShifts(JSON.parse(savedShifts));
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  };
+
+  // Generate current week days
+  const generateWeekDays = () => {
+    const today = new Date();
+    const currentDay = today.getDay(); // 0 = Sunday, 6 = Saturday
+    const weekStart = new Date(today);
+    
+    // Go back to Saturday (start of week)
+    weekStart.setDate(today.getDate() - currentDay - 1);
+    
+    const days: WeekDay[] = [];
+    const dayNames = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+    
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + i);
+      
+      const fullDate = date.toISOString().split('T')[0]; // ISO format: "2024-11-02"
+      const todayISO = today.toISOString().split('T')[0];
+      
+      days.push({
+        day: dayNames[i],
+        date: date.getDate(),
+        fullDate: fullDate,
+        active: fullDate === todayISO,
+      });
+    }
+    
+    setWeekDays(days);
+  };
+
+  // Calculate earnings for selected date
+  const selectedDateEarnings = shifts
+    .filter(shift => shift.date === selectedDate)
+    .reduce((total, shift) => total + shift.earnings, 0);
+
+  // Calculate total earnings this month
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  
+  const monthlyEarnings = shifts
+    .filter(shift => {
+      const shiftDate = new Date(shift.date);
+      return shiftDate.getMonth() === currentMonth && 
+             shiftDate.getFullYear() === currentYear;
+    })
+    .reduce((total, shift) => total + shift.earnings, 0);
+
+  // Calculate hours and shifts for current month
+  const monthlyHours = shifts
+    .filter(shift => {
+      const shiftDate = new Date(shift.date);
+      return shiftDate.getMonth() === currentMonth && 
+             shiftDate.getFullYear() === currentYear;
+    })
+    .reduce((total, shift) => total + shift.totalHours, 0);
+
+  const monthlyShifts = shifts.filter(shift => {
+    const shiftDate = new Date(shift.date);
+    return shiftDate.getMonth() === currentMonth && 
+           shiftDate.getFullYear() === currentYear;
+  }).length;
+
+  const progressPercentage: number = monthlyGoal > 0 
+    ? Math.round((monthlyEarnings / monthlyGoal) * 100) 
+    : 0;
+  
+  const averagePerShift: string = monthlyShifts > 0 
+    ? (monthlyEarnings / monthlyShifts).toFixed(2) 
+    : '0.00';
+  
+  const remaining: number = monthlyGoal - monthlyEarnings;
 
   // Circle progress calculation
   const radius: number = 100;
   const circumference: number = 2 * Math.PI * radius;
   const strokeDashoffset: number = circumference - (progressPercentage / 100) * circumference;
 
-  // Week days data (placeholder)
-  const weekDays: WeekDay[] = [
-    { day: 'Sat', date: 11, active: false },
-    { day: 'Sun', date: 12, active: false },
-    { day: 'Mon', date: 13, active: false },
-    { day: 'Tue', date: 14, active: true },
-    { day: 'Wed', date: 15, active: false },
-    { day: 'Thu', date: 16, active: false },
-    { day: 'Fri', date: 17, active: false },
-  ];
+  // Handle date selection
+  const handleDateSelect = (day: WeekDay) => {
+    setSelectedDate(day.fullDate);
+    // Update active state
+    setWeekDays(weekDays.map(d => ({
+      ...d,
+      active: d.fullDate === day.fullDate
+    })));
+  };
+
+  // Get current date display
+  const getDateDisplay = () => {
+    const activeDay = weekDays.find(d => d.active);
+    if (!activeDay) {
+      return new Date().toLocaleDateString('en-US', { 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric' 
+      });
+    }
+    
+    // Convert ISO string to Date object
+    const [year, month, day] = activeDay.fullDate.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // month is 0-indexed
+    
+    return date.toLocaleDateString('en-US', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    });
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -75,11 +199,10 @@ export default function DetailsScreen() {
         
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>My Earnings</Text>
-          <Text style={styles.headerDate}>14 October 2024</Text>
+          <Text style={styles.headerDate}>{getDateDisplay()}</Text>
         </View>
         
         <View style={{ width: 40 }} />
-        {/* Empty view for symmetry */}
       </View>
 
       {/* Week Calendar Strip */}
@@ -88,6 +211,7 @@ export default function DetailsScreen() {
           <TouchableOpacity 
             key={index} 
             style={styles.dayContainer}
+            onPress={() => handleDateSelect(item)}
           >
             <Text style={[styles.dayText, item.active && styles.activeDayText]}>
               {item.day}
@@ -101,7 +225,7 @@ export default function DetailsScreen() {
         ))}
       </View>
 
-      {/* Circular Progress */}
+      {/* Circular Progress - Shows monthly total */}
       <View style={styles.progressContainer}>
         <View style={styles.circleWrapper}>
           <Svg width="240" height="240">
@@ -132,8 +256,8 @@ export default function DetailsScreen() {
           
           {/* Center content */}
           <View style={styles.centerContent}>
-            <Text style={styles.mainAmount}>${earnedSoFar}</Text>
-            <Text style={styles.goalSubtext}>of ${monthlyGoal}</Text>
+            <Text style={styles.mainAmount}>${monthlyEarnings.toFixed(0)}</Text>
+            <Text style={styles.goalSubtext}>of ${monthlyGoal.toLocaleString()}</Text>
           </View>
         </View>
 
@@ -147,17 +271,18 @@ export default function DetailsScreen() {
       <View style={styles.statsSection}>
         <Text style={styles.sectionTitle}>Overview</Text>
         
-        {/* Main Goal Card */}
-        <TouchableOpacity style={styles.mainCard}>
+        {/* Main Goal Card - Not clickable, just informational */}
+        <View style={styles.mainCard}>
           <View style={styles.iconCircle}>
             <Ionicons name="wallet-outline" size={24} color={COLORS.textPrimary} />
           </View>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Monthly Target</Text>
-            <Text style={styles.cardSubtitle}>Goal: ${monthlyGoal} • ${remaining} remaining</Text>
+            <Text style={styles.cardSubtitle}>
+              Goal: ${monthlyGoal.toLocaleString()} • ${remaining > 0 ? remaining.toFixed(0) : 0} remaining
+            </Text>
           </View>
-          <Feather name="chevron-right" size={20} color={COLORS.textLight} />
-        </TouchableOpacity>
+        </View>
 
         {/* Stats Row */}
         <View style={styles.statsRow}>
@@ -166,7 +291,7 @@ export default function DetailsScreen() {
             <View style={styles.statIconWrapper}>
               <Feather name="clock" size={18} color="#FFF" />
             </View>
-            <Text style={styles.statValue}>{hoursWorked}h</Text>
+            <Text style={styles.statValue}>{monthlyHours.toFixed(0)}h</Text>
             <Text style={styles.statLabel}>Hours</Text>
           </View>
           
@@ -181,16 +306,15 @@ export default function DetailsScreen() {
         </View>
 
         {/* Performance Card */}
-        <TouchableOpacity style={styles.performanceCard}>
+        <View style={styles.performanceCard}>
           <View style={styles.iconCircle}>
             <MaterialCommunityIcons name="chart-line" size={24} color={COLORS.textPrimary} />
           </View>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Performance</Text>
-            <Text style={styles.cardSubtitle}>{shiftsWorked} shifts completed this month</Text>
+            <Text style={styles.cardSubtitle}>{monthlyShifts} shifts completed this month</Text>
           </View>
-          <Feather name="chevron-right" size={20} color={COLORS.textLight} />
-        </TouchableOpacity>
+        </View>
 
         {/* Bonus Cards Row */}
         <View style={styles.bonusRow}>
