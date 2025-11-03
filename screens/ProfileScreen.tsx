@@ -7,6 +7,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import HourlyRateModal from '../components/HourlyRateModal';
 import MonthlyGoalModal from '../components/MonthlyGoalModal';
 import WorkHoursModal from '../components/WorkHoursModal';
+import ExportDataModal from '../components/ExportDataModal';
+
 
 // Define navigation types
 type RootStackParamList = {
@@ -49,11 +51,13 @@ export default function ProfileScreen() {
   const [monthlyGoal, setMonthlyGoal] = useState<number>(1000);
   const [workStartTime, setWorkStartTime] = useState<string>('09:00'); // 24-hour format
   const [workEndTime, setWorkEndTime] = useState<string>('17:00');     // 24-hour format
+
   
   // Modal visibility state
   const [hourlyRateModalVisible, setHourlyRateModalVisible] = useState<boolean>(false);
   const [monthlyGoalModalVisible, setMonthlyGoalModalVisible] = useState<boolean>(false);
   const [workHoursModalVisible, setWorkHoursModalVisible] = useState<boolean>(false);
+  const [exportDataModalVisible, setExportDataModalVisible] = useState<boolean>(false);
 
   // Load saved data when component mounts
   useEffect(() => {
@@ -245,13 +249,16 @@ export default function ProfileScreen() {
         </View>
 
         {/* Export Data - Dark accent (important action) */}
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => setExportDataModalVisible(true)}
+        >
           <View style={styles.darkIconWrapper}>
             <Feather name="download" size={20} color="#FFFFFF" />
           </View>
           <View style={styles.menuContent}>
             <Text style={styles.menuTitle}>Export Data</Text>
-            <Text style={styles.menuSubtitle}>Download timesheets as CSV</Text>
+            <Text style={styles.menuSubtitle}>Download timesheets as PDF</Text>
           </View>
           <Feather name="chevron-right" size={20} color={COLORS.textLight} />
         </TouchableOpacity>
@@ -324,6 +331,10 @@ export default function ProfileScreen() {
         currentStartTime={workStartTime}
         currentEndTime={workEndTime}
         onSave={handleSaveWorkHours}
+      />
+      <ExportDataModal
+        visible={exportDataModalVisible}
+        onClose={() => setExportDataModalVisible(false)}
       />
     </ScrollView>
   );
