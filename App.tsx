@@ -8,12 +8,14 @@ import CustomTabBar from './components/CustomTabBar';
 
 import HomeScreen from './screens/HomeScreen';
 import DetailsScreen from './screens/DetailsScreen';
-import StatsScreen from './screens/StatsScreen';
 import ProfileScreen from './screens/ProfileScreen';
-import AddScreen from './screens/AddScreen';
+import LoginScreen from './screens/LoginScreen';
+import SignUpScreen from './screens/SignupScreen';
 
+const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// Your existing tab navigator (when user IS logged in)
 function RootTabs() {
   return (
     <Tab.Navigator
@@ -66,9 +68,23 @@ function RootTabs() {
 }
 
 export default function App() {
+  // TODO: Replace this with actual auth state from Supabase later
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+
   return (
     <NavigationContainer>
-      <RootTabs />
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {!isLoggedIn ? (
+          // Auth Stack - shown when NOT logged in
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="SignUp" component={SignUpScreen} />
+          </>
+        ) : (
+          // Main App - shown when logged in
+          <Stack.Screen name="MainApp" component={RootTabs} />
+        )}
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }
