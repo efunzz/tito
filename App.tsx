@@ -12,6 +12,9 @@ import ProfileScreen from './screens/ProfileScreen';
 import LoginScreen from './screens/LoginScreen';
 import SignUpScreen from './screens/SignupScreen';
 
+import { supabase } from './lib/supabase';
+import { Session } from '@supabase/supabase-js';
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -68,8 +71,32 @@ function RootTabs() {
 }
 
 export default function App() {
-  // TODO: Replace this with actual auth state from Supabase later
-  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+  // ✨ NOW USING REAL AUTH STATE FROM SUPABASE
+  const [session, setSession] = React.useState<Session | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    // Check if user is already logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    // Listen for auth changes (login, logout, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Show nothing while checking auth (optional: add a loading screen)
+  if (loading) {
+    return null;
+  }
+
+  // ✨ session = logged in, no session = show login
+  const isLoggedIn = !!session;
 
   return (
     <NavigationContainer>

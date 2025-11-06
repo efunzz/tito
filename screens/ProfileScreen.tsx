@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Alert } from 'react-native';
+import { supabase } from '../lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HourlyRateModal from '../components/HourlyRateModal';
 import MonthlyGoalModal from '../components/MonthlyGoalModal';
@@ -42,6 +44,30 @@ const COLORS = {
   textLight: '#B8B8B8',
 } as const;
 
+const handleSignOut = async () => {
+  Alert.alert(
+    'Sign Out',
+    'Are you sure you want to sign out?',
+    [
+      {
+        text: 'Cancel',
+        style: 'cancel'
+      },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          const { error } = await supabase.auth.signOut();
+          
+          if (error) {
+            Alert.alert('Error', error.message);
+          }
+          // App.tsx will automatically detect logout and show login screen!
+        }
+      }
+    ]
+  );
+};
 export default function ProfileScreen() {
   const navigation = useNavigation<NavigationProp>();
   
@@ -323,9 +349,9 @@ export default function ProfileScreen() {
       </View>
 
       {/* Logout Button */}
-      <TouchableOpacity style={styles.logoutButton}>
+      <TouchableOpacity style={styles.logoutButton} onPress={handleSignOut}>
         <Feather name="log-out" size={20} color={COLORS.primary} />
-        <Text style={styles.logoutText}>Log Out</Text>
+        <Text style={styles.logoutText}>Sign Out</Text>
       </TouchableOpacity>
 
       <View style={{ height: 100 }} />

@@ -10,9 +10,11 @@ import {
   ScrollView,
   Image,
   StatusBar,
+  Alert,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../lib/supabase';
 
-// Match your app's colors exactly
 const COLORS = {
   background: '#E8E5E0',
   cardBg: '#FFFFFF',
@@ -31,37 +33,65 @@ export default function SignUpScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false);
 
   const handleSignUp = async () => {
-    // Validate inputs
     if (!email || !password || !confirmPassword || !name) {
-      alert('Please fill in all fields');
+      Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      Alert.alert('Error', 'Passwords do not match');
       return;
     }
 
     if (password.length < 6) {
-      alert('Password must be at least 6 characters');
+      Alert.alert('Error', 'Password must be at least 6 characters');
       return;
     }
 
     setLoading(true);
     
     try {
-      // TODO: Add Supabase authentication here later
-      console.log('Sign up attempt:', { email, name });
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password,
+        options: {
+          data: {
+            full_name: name,
+          }
+        }
+      });
+
+      if (error) {
+        Alert.alert('Sign Up Failed', error.message);
+        return;
+      }
+
+      console.log('✅ Sign up successful!', data.user?.email);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      Alert.alert(
+        'Success!', 
+        'Account created successfully!',
+        [{ text: 'OK' }]
+      );
       
-      alert('Sign up successful! Please login.');
-      navigation.navigate('Login');
-    } catch (error) {
-      alert('Sign up failed. Please try again.');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Something went wrong');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSocialLogin = async (provider: 'google' | 'apple' | 'facebook') => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+      });
+
+      if (error) {
+        Alert.alert('Error', error.message);
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error.message);
     }
   };
 
@@ -89,9 +119,8 @@ export default function SignUpScreen({ navigation }: any) {
             <Text style={styles.subtitle}>Create your account</Text>
           </View>
 
-          {/* Form Card */}
+          {/* Email/Password Form */}
           <View style={styles.formCard}>
-            {/* Name Input */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Full Name</Text>
               <TextInput
@@ -106,7 +135,6 @@ export default function SignUpScreen({ navigation }: any) {
               />
             </View>
 
-            {/* Email Input */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Email</Text>
               <TextInput
@@ -122,7 +150,6 @@ export default function SignUpScreen({ navigation }: any) {
               />
             </View>
 
-            {/* Password Input */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Password</Text>
               <TextInput
@@ -137,7 +164,6 @@ export default function SignUpScreen({ navigation }: any) {
               />
             </View>
 
-            {/* Confirm Password Input */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Confirm Password</Text>
               <TextInput
@@ -152,7 +178,6 @@ export default function SignUpScreen({ navigation }: any) {
               />
             </View>
 
-            {/* Sign Up Button */}
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleSignUp}
@@ -163,12 +188,10 @@ export default function SignUpScreen({ navigation }: any) {
               </Text>
             </TouchableOpacity>
 
-            {/* Terms Text */}
             <Text style={styles.termsText}>
               By signing up, you agree to our Terms of Service and Privacy Policy
             </Text>
 
-            {/* Login Link */}
             <View style={styles.loginContainer}>
               <Text style={styles.loginText}>Already have an account? </Text>
               <TouchableOpacity 
@@ -176,6 +199,37 @@ export default function SignUpScreen({ navigation }: any) {
                 disabled={loading}
               >
                 <Text style={styles.loginLink}>Sign In</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or continue with</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Social Login Icons Row */}
+            <View style={styles.socialIconsRow}>
+              <TouchableOpacity 
+                style={styles.socialIconButton}
+                onPress={() => handleSocialLogin('google')}
+              >
+                <Ionicons name="logo-google" size={24} color={COLORS.textPrimary} />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.socialIconButton}
+                onPress={() => handleSocialLogin('apple')}
+              >
+                <Ionicons name="logo-apple" size={24} color={COLORS.textPrimary} />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.socialIconButton}
+                onPress={() => handleSocialLogin('facebook')}
+              >
+                <Ionicons name="logo-facebook" size={24} color={COLORS.textPrimary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -290,5 +344,40 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.primary,
     fontWeight: '600',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 32,
+    marginBottom: 24,
+    gap: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.textSecondary,
+    opacity: 0.2,
+  },
+  dividerText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+  },
+  socialIconsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  socialIconButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
 });

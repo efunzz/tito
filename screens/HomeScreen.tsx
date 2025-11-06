@@ -38,9 +38,8 @@ export default function HomeScreen() {
   const [breakStartTime, setBreakStartTime] = useState<Date | null>(null);
   const [currentBreaks, setCurrentBreaks] = useState<{ start: string; end: string | null }[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
-  const [hourlyRate, setHourlyRate] = useState(15); // Default $15/hour
+  const [hourlyRate, setHourlyRate] = useState(15);
 
-  // Load saved data when app opens
   useEffect(() => {
     loadData();
   }, []);
@@ -69,7 +68,6 @@ export default function HomeScreen() {
     setStatus('clocked-in');
     setCurrentBreaks([]);
 
-    // Save to AsyncStorage
     await AsyncStorage.setItem('status', 'clocked-in');
     await AsyncStorage.setItem('currentClockIn', now.toISOString());
     await AsyncStorage.setItem('currentBreaks', JSON.stringify([]));
@@ -91,7 +89,6 @@ export default function HomeScreen() {
   const handleEndBreak = async () => {
     const now = new Date();
     
-    // Update the last break's end time
     const updatedBreaks = currentBreaks.map((brk, idx) => 
       idx === currentBreaks.length - 1 ? { ...brk, end: now.toISOString() } : brk
     );
@@ -107,7 +104,6 @@ export default function HomeScreen() {
   const calculateHours = (clockIn: Date, clockOut: Date, breaks: { start: string; end: string | null }[]) => {
     const totalMs = clockOut.getTime() - clockIn.getTime();
     
-    // Calculate break time
     const breakMs = breaks.reduce((total, brk) => {
       if (brk.end) {
         const breakDuration = new Date(brk.end).getTime() - new Date(brk.start).getTime();
@@ -117,7 +113,7 @@ export default function HomeScreen() {
     }, 0);
 
     const workMs = totalMs - breakMs;
-    return workMs / (1000 * 60 * 60); // Convert to hours
+    return workMs / (1000 * 60 * 60);
   };
 
   const handleClockOut = async () => {
@@ -129,7 +125,7 @@ export default function HomeScreen() {
 
     const newShift: Shift = {
       id: Date.now().toString(),
-      date: now.toISOString().split('T')[0], // ✅ ISO FORMAT: "2025-11-03"
+      date: now.toISOString().split('T')[0],
       clockIn: clockInTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       clockOut: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       breaks: currentBreaks,
@@ -145,7 +141,6 @@ export default function HomeScreen() {
     setCurrentBreaks([]);
     setStatus('idle');
 
-    // Save to AsyncStorage
     await AsyncStorage.setItem('shifts', JSON.stringify(updatedShifts));
     await AsyncStorage.removeItem('status');
     await AsyncStorage.removeItem('currentClockIn');
@@ -154,8 +149,7 @@ export default function HomeScreen() {
     console.log('Shift saved:', newShift);
   };
 
-  // Calculate today's earnings - ✅ FIXED TO USE ISO FORMAT
-  const today = new Date().toISOString().split('T')[0]; // "2025-11-03"
+  const today = new Date().toISOString().split('T')[0];
   const todayEarnings = shifts
     .filter(shift => shift.date === today)
     .reduce((total, shift) => total + shift.earnings, 0);
@@ -164,9 +158,16 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
       
-      {/* Header */}
+      {/* Header with custom "tito" logo */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Tito</Text>
+        <View style={styles.logoContainer}>
+          <Text style={styles.logoText}>t</Text>
+          <View style={styles.iContainer}>
+            <View style={styles.redDot} />
+            <Text style={styles.logoText}>i</Text>
+          </View>
+          <Text style={styles.logoText}>to</Text>
+        </View>
         <TouchableOpacity onPress={() => navigation.navigate('Details')}>
           <Feather name="bar-chart-2" size={24} color={COLORS.textPrimary} />
         </TouchableOpacity>
@@ -213,7 +214,6 @@ export default function HomeScreen() {
 
         {/* Action Buttons Grid (2x2) */}
         <View style={styles.buttonGrid}>
-          {/* Clock In Button - Red */}
           <TouchableOpacity 
             style={[
               styles.actionCard,
@@ -242,7 +242,6 @@ export default function HomeScreen() {
             </Text>
           </TouchableOpacity>
 
-          {/* Clock Out Button - Dark */}
           <TouchableOpacity 
             style={[
               styles.actionCard,
@@ -271,7 +270,6 @@ export default function HomeScreen() {
             </Text>
           </TouchableOpacity>
 
-          {/* Start Break Button - Red */}
           <TouchableOpacity 
             style={[
               styles.actionCard,
@@ -300,7 +298,6 @@ export default function HomeScreen() {
             </Text>
           </TouchableOpacity>
 
-          {/* End Break Button - Dark */}
           <TouchableOpacity 
             style={[
               styles.actionCard,
@@ -338,7 +335,7 @@ export default function HomeScreen() {
               <Text style={styles.shiftsCount}>{shifts.length}</Text>
             </View>
             
-            {shifts.slice(-3).reverse().map((shift, index) => (
+            {shifts.slice(-3).reverse().map((shift) => (
               <View key={shift.id} style={styles.shiftCard}>
                 <View style={styles.shiftHeader}>
                   <Text style={styles.shiftDate}>{shift.date}</Text>
@@ -384,10 +381,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 32,
   },
-  headerTitle: {
+  // ✨ Custom "tito" logo styles
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  logoText: {
     fontSize: 28,
     fontWeight: '600',
     color: COLORS.textPrimary,
+    letterSpacing: -0.5,
+  },
+  iContainer: {
+    position: 'relative',
+  },
+  redDot: {
+    position: 'absolute',
+    top: 4=,
+    left: 1,
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: COLORS.primary,
+    zIndex: 1,
   },
   statusContainer: {
     paddingHorizontal: 20,
@@ -571,3 +587,8 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
 });
+
+
+
+
+
