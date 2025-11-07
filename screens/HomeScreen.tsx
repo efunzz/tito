@@ -2,37 +2,17 @@ import { View, Text, StyleSheet, TouchableOpacity, StatusBar, ScrollView } from 
 import { useState, useEffect } from 'react';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Status type
-type Status = 'idle' | 'clocked-in' | 'on-break';
+// Import centralized theme and types
+import { COLORS } from '../constants/theme';
+import type { Status, Shift, TabParamList } from '../constants/types';
 
-// Shift type
-type Shift = {
-  id: string;
-  date: string;
-  clockIn: string;
-  clockOut: string | null;
-  breaks: { start: string; end: string | null }[];
-  totalHours: number;
-  hourlyRate: number;
-  earnings: number;
-};
-
-// Match Cardy Pay colors
-const COLORS = {
-  background: '#E8E5E0',
-  cardBg: '#FFFFFF',
-  cardDisabled: '#D4D1CC',
-  darkCard: '#1A1A1A',
-  primary: '#FF5555',
-  textPrimary: '#1A1A1A',
-  textSecondary: '#8E8E93',
-  textDisabled: '#B8B8B8',
-} as const;
+type NavigationProp = NativeStackNavigationProp<TabParamList, 'Home'>;
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const [status, setStatus] = useState<Status>('idle');
   const [clockInTime, setClockInTime] = useState<Date | null>(null);
   const [breakStartTime, setBreakStartTime] = useState<Date | null>(null);
@@ -397,7 +377,7 @@ const styles = StyleSheet.create({
   },
   redDot: {
     position: 'absolute',
-    top: 4=,
+    top: 4,
     left: 1,
     width: 5,
     height: 5,

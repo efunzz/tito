@@ -7,46 +7,11 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
 
-// Define navigation types
-type RootStackParamList = {
-  Home: undefined;
-  Details: undefined;
-};
+// Import centralized theme and types
+import { COLORS } from '../constants/theme';
+import type { Shift, WeekDay, RootStackParamList } from '../constants/types';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Details'>;
-
-// Week day type
-interface WeekDay {
-  day: string;
-  date: number;
-  fullDate: string; // Added for matching with shift dates
-  active: boolean;
-}
-
-// Shift type (matches HomeScreen)
-type Shift = {
-  id: string;
-  date: string;
-  clockIn: string;
-  clockOut: string | null;
-  breaks: { start: string; end: string | null }[];
-  totalHours: number;
-  hourlyRate: number;
-  earnings: number;
-};
-
-// Cardy Pay Color Palette
-const COLORS = {
-  background: '#E8E5E0',
-  cardBg: '#FFFFFF',
-  darkCard: '#1A1A1A',
-  grayCard: '#D4D1CC',
-  primary: '#FF5555',
-  primaryDark: '#C0392B',
-  textPrimary: '#1A1A1A',
-  textSecondary: '#8E8E93',
-  textLight: '#B8B8B8',
-} as const;
 
 export default function DetailsScreen() {
   const navigation = useNavigation<NavigationProp>();

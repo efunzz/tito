@@ -10,15 +10,8 @@ import BottomSheetModal from './BottomSheetModal';
 import { Feather } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-const COLORS = {
-  background: '#E8E5E0',
-  cardBg: '#FFFFFF',
-  darkCard: '#1A1A1A',
-  primary: '#FF5555',
-  textPrimary: '#1A1A1A',
-  textSecondary: '#8E8E93',
-  grayCard: '#D4D1CC',
-} as const;
+// Import centralized theme
+import { COLORS } from '../constants/theme';
 
 interface WorkHoursModalProps {
   visible: boolean;

@@ -15,15 +15,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 
-const COLORS = {
-  background: '#E8E5E0',
-  cardBg: '#FFFFFF',
-  primary: '#FF5555',
-  darkCard: '#1A1A1A',
-  textPrimary: '#1A1A1A',
-  textSecondary: '#8E8E93',
-  textDisabled: '#B8B8B8',
-} as const;
+// Import centralized theme
+import { COLORS } from '../constants/theme';
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');

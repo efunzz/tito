@@ -13,14 +13,8 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
-const COLORS = {
-  background: '#E8E5E0',
-  cardBg: '#FFFFFF',
-  darkCard: '#1A1A1A',
-  primary: '#FF5555',
-  textPrimary: '#1A1A1A',
-  textSecondary: '#8E8E93',
-} as const;
+// Import centralized theme
+import { COLORS } from '../constants/theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 

@@ -10,6 +10,7 @@ export const COLORS = {
   cardBg: '#FFFFFF',      // White cards
   darkCard: '#1A1A1A',    // Dark accent cards
   grayCard: '#D4D1CC',    // Gray accent cards
+  cardDisabled: '#D4D1CC', // Disabled card state (same as grayCard)
 
   // Primary colors
   primary: '#FF5555',     // Red primary

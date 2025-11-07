@@ -14,15 +14,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 
-const COLORS = {
-  background: '#E8E5E0',
-  cardBg: '#FFFFFF',
-  darkCard: '#1A1A1A',
-  primary: '#FF5555',
-  textPrimary: '#1A1A1A',
-  textSecondary: '#8E8E93',
-  grayCard: '#D4D1CC',
-} as const;
+// Import centralized theme
+import { COLORS } from '../constants/theme';
 
 interface ExportDataModalProps {
   visible: boolean;
