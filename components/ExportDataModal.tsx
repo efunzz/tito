@@ -14,24 +14,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 
-// Import centralized theme
+// Import centralized theme and types
 import { COLORS } from '../constants/theme';
+import type { Shift } from '../constants/types';
 
 interface ExportDataModalProps {
   visible: boolean;
   onClose: () => void;
 }
-
-type Shift = {
-  id: string;
-  date: string;
-  clockIn: string;
-  clockOut: string | null;
-  breaks: { start: string; end: string | null }[];
-  totalHours: number;
-  hourlyRate: number;
-  earnings: number;
-};
 
 export default function ExportDataModal({ visible, onClose }: ExportDataModalProps) {
   const [isGenerating, setIsGenerating] = useState(false);
