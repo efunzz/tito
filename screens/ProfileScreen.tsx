@@ -11,38 +11,12 @@ import MonthlyGoalModal from '../components/MonthlyGoalModal';
 import WorkHoursModal from '../components/WorkHoursModal';
 import ExportDataModal from '../components/ExportDataModal';
 
+// Import centralized types and theme
+import { COLORS } from '../constants/theme';
+import type { Shift, RootStackParamList } from '../constants/types';
+
 // Define navigation types
-type RootStackParamList = {
-  Home: undefined;
-  Profile: undefined;
-};
-
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Profile'>;
-
-// Shift type (matches HomeScreen)
-type Shift = {
-  id: string;
-  date: string;
-  clockIn: string;
-  clockOut: string | null;
-  breaks: { start: string; end: string | null }[];
-  totalHours: number;
-  hourlyRate: number;
-  earnings: number;
-};
-
-// Cardy Pay Color Palette
-const COLORS = {
-  background: '#E8E5E0',
-  cardBg: '#FFFFFF',
-  darkCard: '#1A1A1A',
-  grayCard: '#D4D1CC',
-  primary: '#FF5555',
-  primaryDark: '#C0392B',
-  textPrimary: '#1A1A1A',
-  textSecondary: '#8E8E93',
-  textLight: '#B8B8B8',
-} as const;
 
 const handleSignOut = async () => {
   Alert.alert(
@@ -70,7 +44,7 @@ const handleSignOut = async () => {
 };
 export default function ProfileScreen() {
   const navigation = useNavigation<NavigationProp>();
-  
+
   // Helper function to format 24-hour to 12-hour
   const formatTime12Hour = (time24: string): string => {
     const [hour, minute] = time24.split(':').map(Number);
@@ -78,7 +52,12 @@ export default function ProfileScreen() {
     const hour12 = hour % 12 || 12;
     return `${hour12}:${minute.toString().padStart(2, '0')} ${period}`;
   };
-  
+
+  // State for user data from Supabase
+  const [userName, setUserName] = useState<string>('');
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [userInitials, setUserInitials] = useState<string>('');
+
   // State for settings
   const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
   const [autoClockOut, setAutoClockOut] = useState<boolean>(false);
@@ -105,8 +84,47 @@ export default function ProfileScreen() {
 
   // Load saved data when component mounts
   useEffect(() => {
+    loadUserData();
     loadSettings();
   }, []);
+
+  // Load user data from Supabase
+  const loadUserData = async () => {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+
+      if (error) {
+        console.error('Error fetching user:', error);
+        return;
+      }
+
+      if (user) {
+        // Get email
+        const email = user.email || '';
+        setUserEmail(email);
+
+        // Get user name from metadata or email
+        // Supabase stores user metadata in user_metadata field
+        const fullName = user.user_metadata?.full_name ||
+                        user.user_metadata?.name ||
+                        email.split('@')[0]; // Fallback to email username
+
+        setUserName(fullName);
+
+        // Generate initials from name
+        const initials = fullName
+          .split(' ')
+          .map((word: string) => word[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2); // Take first 2 letters
+
+        setUserInitials(initials || 'U'); // Default to 'U' if no name
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  };
 
   const loadSettings = async () => {
     try {
@@ -180,13 +198,13 @@ export default function ProfileScreen() {
       <View style={styles.profileCard}>
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>IS</Text>
+            <Text style={styles.avatarText}>{userInitials || 'U'}</Text>
           </View>
           <View style={styles.statusDot} />
         </View>
-        
-        <Text style={styles.profileName}>Irfan Sofyan</Text>
-        <Text style={styles.profileEmail}>irfansofyan2001@gmail.com</Text>
+
+        <Text style={styles.profileName}>{userName || 'User'}</Text>
+        <Text style={styles.profileEmail}>{userEmail || 'Loading...'}</Text>
         
         {/* Quick Stats */}
         <View style={styles.quickStats}>
