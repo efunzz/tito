@@ -19,18 +19,29 @@ import { Session } from '@supabase/supabase-js';
 import { ShiftsProvider } from './contexts/ShiftsContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 
+// Import AddShiftModal
+import AddShiftModal from './components/AddShiftModal';
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 // Your existing tab navigator (when user IS logged in)
 function RootTabs() {
+  const [addShiftModalVisible, setAddShiftModalVisible] = React.useState(false);
+
   return (
-    <Tab.Navigator
-      tabBar={(props) => <CustomTabBar {...props} />}
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
+    <>
+      <Tab.Navigator
+        tabBar={(props) => (
+          <CustomTabBar
+            {...props}
+            onAddShift={() => setAddShiftModalVisible(true)}
+          />
+        )}
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
       <Tab.Screen 
         name="Home" 
         component={HomeScreen}
@@ -70,7 +81,14 @@ function RootTabs() {
           ),
         }}
       />
-    </Tab.Navigator>
+      </Tab.Navigator>
+
+      {/* Add Shift Modal */}
+      <AddShiftModal
+        visible={addShiftModalVisible}
+        onClose={() => setAddShiftModalVisible(false)}
+      />
+    </>
   );
 }
 

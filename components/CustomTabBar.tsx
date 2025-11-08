@@ -3,7 +3,11 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
-export default function CustomTabBar({ state, descriptors, navigation }:BottomTabBarProps) {
+interface CustomTabBarProps extends BottomTabBarProps {
+  onAddShift?: () => void;
+}
+
+export default function CustomTabBar({ state, descriptors, navigation, onAddShift }: CustomTabBarProps) {
   return (
     <View style={styles.tabBarContainer}>
       {/* Left side - compact tab bar with 3 icons */}
@@ -44,8 +48,10 @@ export default function CustomTabBar({ state, descriptors, navigation }:BottomTa
       <TouchableOpacity
         style={styles.plusButton}
         onPress={() => {
-          // Navigate to Details tab (where shifts are managed)
-          navigation.navigate('Details');
+          // Open Add Shift modal
+          if (onAddShift) {
+            onAddShift();
+          }
         }}
       >
         <Ionicons name="add" size={28} color="#FFFFFF" />
