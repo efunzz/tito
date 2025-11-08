@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Alert } from 'react-native';
 import { supabase } from '../lib/supabase';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import HourlyRateModal from '../components/HourlyRateModal';
 import MonthlyGoalModal from '../components/MonthlyGoalModal';
 import WorkHoursModal from '../components/WorkHoursModal';
@@ -13,7 +12,11 @@ import ExportDataModal from '../components/ExportDataModal';
 
 // Import centralized types and theme
 import { COLORS } from '../constants/theme';
-import type { Shift, RootStackParamList } from '../constants/types';
+import type { RootStackParamList } from '../constants/types';
+
+// Import Context hooks
+import { useShifts } from '../contexts/ShiftsContext';
+import { useSettings } from '../contexts/SettingsContext';
 
 // Define navigation types
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Profile'>;
@@ -45,6 +48,22 @@ const handleSignOut = async () => {
 export default function ProfileScreen() {
   const navigation = useNavigation<NavigationProp>();
 
+  // Get data from Context
+  const { shifts } = useShifts();
+  const {
+    hourlyRate,
+    setHourlyRate,
+    monthlyGoal,
+    setMonthlyGoal,
+    workStartTime,
+    workEndTime,
+    setWorkHours,
+    notificationsEnabled,
+    setNotificationsEnabled,
+    autoClockOut,
+    setAutoClockOut,
+  } = useSettings();
+
   // Helper function to format 24-hour to 12-hour
   const formatTime12Hour = (time24: string): string => {
     const [hour, minute] = time24.split(':').map(Number);
@@ -58,19 +77,6 @@ export default function ProfileScreen() {
   const [userEmail, setUserEmail] = useState<string>('');
   const [userInitials, setUserInitials] = useState<string>('');
 
-  // State for settings
-  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
-  const [autoClockOut, setAutoClockOut] = useState<boolean>(false);
-  
-  // Work settings state
-  const [hourlyRate, setHourlyRate] = useState<number>(15);
-  const [monthlyGoal, setMonthlyGoal] = useState<number>(1000);
-  const [workStartTime, setWorkStartTime] = useState<string>('09:00'); // 24-hour format
-  const [workEndTime, setWorkEndTime] = useState<string>('17:00');     // 24-hour format
-  
-  // Shifts data for stats
-  const [shifts, setShifts] = useState<Shift[]>([]);
-  
   // Modal visibility state
   const [hourlyRateModalVisible, setHourlyRateModalVisible] = useState<boolean>(false);
   const [monthlyGoalModalVisible, setMonthlyGoalModalVisible] = useState<boolean>(false);
@@ -82,10 +88,9 @@ export default function ProfileScreen() {
   const totalEarnings = shifts.reduce((sum, shift) => sum + shift.earnings, 0);
   const totalShifts = shifts.length;
 
-  // Load saved data when component mounts
+  // Load user data when component mounts
   useEffect(() => {
     loadUserData();
-    loadSettings();
   }, []);
 
   // Load user data from Supabase
@@ -126,72 +131,34 @@ export default function ProfileScreen() {
     }
   };
 
-  const loadSettings = async () => {
-    try {
-      const savedRate = await AsyncStorage.getItem('hourlyRate');
-      const savedGoal = await AsyncStorage.getItem('monthlyGoal');
-      const savedStartTime = await AsyncStorage.getItem('workStartTime');
-      const savedEndTime = await AsyncStorage.getItem('workEndTime');
-      const savedShifts = await AsyncStorage.getItem('shifts');
-      
-      if (savedRate) setHourlyRate(parseFloat(savedRate));
-      if (savedGoal) setMonthlyGoal(parseFloat(savedGoal));
-      if (savedStartTime) setWorkStartTime(savedStartTime);
-      if (savedEndTime) setWorkEndTime(savedEndTime);
-      if (savedShifts) setShifts(JSON.parse(savedShifts));
-    } catch (error) {
-      console.error('Error loading settings:', error);
-    }
-  };
-
+  // Modal handlers - now use Context
   const handleSaveHourlyRate = async (rate: number) => {
-    setHourlyRate(rate);
-    try {
-      await AsyncStorage.setItem('hourlyRate', rate.toString());
-      console.log('Hourly rate saved:', rate);
-    } catch (error) {
-      console.error('Error saving hourly rate:', error);
-    }
+    await setHourlyRate(rate);
   };
 
   const handleSaveMonthlyGoal = async (goal: number) => {
-    setMonthlyGoal(goal);
-    try {
-      await AsyncStorage.setItem('monthlyGoal', goal.toString());
-      console.log('Monthly goal saved:', goal);
-    } catch (error) {
-      console.error('Error saving monthly goal:', error);
-    }
+    await setMonthlyGoal(goal);
   };
 
   const handleSaveWorkHours = async (startTime: string, endTime: string) => {
-    setWorkStartTime(startTime);
-    setWorkEndTime(endTime);
-    try {
-      await AsyncStorage.setItem('workStartTime', startTime);
-      await AsyncStorage.setItem('workEndTime', endTime);
-      console.log('Work hours saved:', startTime, '-', endTime);
-    } catch (error) {
-      console.error('Error saving work hours:', error);
-    }
+    await setWorkHours(startTime, endTime);
   };
 
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
           <Feather name="arrow-left" size={24} color={COLORS.textPrimary} />
         </TouchableOpacity>
-        
+
         <Text style={styles.headerTitle}>Profile</Text>
-        
-        <TouchableOpacity style={styles.editButton}>
-          <Feather name="edit-2" size={20} color={COLORS.textPrimary} />
-        </TouchableOpacity>
+
+        {/* Spacer to keep title centered */}
+        <View style={{ width: 40 }} />
       </View>
 
       {/* Profile Info Card */}
@@ -437,19 +404,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: COLORS.textPrimary,
-  },
-  editButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.cardBg,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
   },
 
   // Profile Card

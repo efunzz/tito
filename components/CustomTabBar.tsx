@@ -41,11 +41,11 @@ export default function CustomTabBar({ state, descriptors, navigation }:BottomTa
       </View>
 
       {/* Right side - circular plus button */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.plusButton}
         onPress={() => {
-          // Handle add/clock in action here
-          console.log('Plus button pressed');
+          // Navigate to Details tab (where shifts are managed)
+          navigation.navigate('Details');
         }}
       >
         <Ionicons name="add" size={28} color="#FFFFFF" />

@@ -15,6 +15,10 @@ import SignUpScreen from './screens/SignupScreen';
 import { supabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
 
+// Import Context Providers
+import { ShiftsProvider } from './contexts/ShiftsContext';
+import { SettingsProvider } from './contexts/SettingsContext';
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -99,19 +103,23 @@ export default function App() {
   const isLoggedIn = !!session;
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!isLoggedIn ? (
-          // Auth Stack - shown when NOT logged in
-          <>
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="SignUp" component={SignUpScreen} />
-          </>
-        ) : (
-          // Main App - shown when logged in
-          <Stack.Screen name="MainApp" component={RootTabs} />
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ShiftsProvider>
+      <SettingsProvider>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {!isLoggedIn ? (
+              // Auth Stack - shown when NOT logged in
+              <>
+                <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen name="SignUp" component={SignUpScreen} />
+              </>
+            ) : (
+              // Main App - shown when logged in (wrapped with Context)
+              <Stack.Screen name="MainApp" component={RootTabs} />
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SettingsProvider>
+    </ShiftsProvider>
   );
 }
