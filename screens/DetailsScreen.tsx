@@ -102,12 +102,23 @@ export default function DetailsScreen() {
 
   const remaining: number = monthlyGoal - monthlyEarnings;
 
-  const averagePerShift: string = totalShifts > 0
-    ? (totalEarnings / totalShifts).toFixed(2)
-    : '0.00';
+  // Calculate goal progress metrics
+  const progressPercentage: number = monthlyGoal > 0
+    ? Math.min(Math.round((monthlyEarnings / monthlyGoal) * 100), 100)
+    : 0;
 
-  // Circle - static decoration (no progress bar for selected day)
+  // Calculate hours needed to reach goal
+  const { hourlyRate } = useSettings();
+  const hoursNeeded: number = remaining > 0 ? remaining / hourlyRate : 0;
+
+  // Calculate shifts needed based on average hours per shift
+  const avgHoursPerShift: number = totalShifts > 0 ? totalHours / totalShifts : 8; // Default to 8 if no shifts
+  const shiftsNeeded: number = hoursNeeded > 0 ? Math.ceil(hoursNeeded / avgHoursPerShift) : 0;
+
+  // Circle progress calculation
   const radius: number = 100;
+  const circumference: number = 2 * Math.PI * radius;
+  const strokeDashoffset: number = circumference - (progressPercentage / 100) * circumference;
 
   // Handle date selection
   const handleDateSelect = (day: WeekDay) => {
@@ -180,11 +191,11 @@ export default function DetailsScreen() {
         ))}
       </View>
 
-      {/* Selected Day Earnings */}
-      <View style={styles.selectedDayContainer}>
+      {/* Monthly Goal Progress Circle */}
+      <View style={styles.progressContainer}>
         <View style={styles.circleWrapper}>
           <Svg width="240" height="240">
-            {/* Static circle decoration */}
+            {/* Background circle */}
             <Circle
               cx="120"
               cy="120"
@@ -193,18 +204,32 @@ export default function DetailsScreen() {
               strokeWidth="16"
               fill="none"
             />
+            {/* Progress circle */}
+            <Circle
+              cx="120"
+              cy="120"
+              r={radius}
+              stroke={COLORS.primary}
+              strokeWidth="16"
+              fill="none"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              rotation="-90"
+              origin="120, 120"
+            />
           </Svg>
 
-          {/* Center content - Selected Day Earnings */}
+          {/* Center content - Monthly Progress */}
           <View style={styles.centerContent}>
-            <Text style={styles.mainAmount}>${selectedDateEarnings.toFixed(2)}</Text>
-            <Text style={styles.goalSubtext}>earned this day</Text>
+            <Text style={styles.mainAmount}>${monthlyEarnings.toFixed(0)}</Text>
+            <Text style={styles.goalSubtext}>of ${monthlyGoal.toLocaleString()}</Text>
           </View>
         </View>
 
         {/* Icon indicator */}
         <View style={styles.indicatorIcon}>
-          <Feather name="calendar" size={20} color={COLORS.primary} />
+          <Feather name="trending-up" size={20} color={COLORS.primary} />
         </View>
       </View>
 
@@ -238,65 +263,48 @@ export default function DetailsScreen() {
         </View>
       )}
 
-      {/* Monthly Target Card */}
-      <View style={styles.statsSection}>
-        <Text style={styles.sectionTitle}>Monthly Target</Text>
-
-        <View style={styles.mainCard}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="wallet-outline" size={24} color={COLORS.textPrimary} />
-          </View>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Goal: ${monthlyGoal.toLocaleString()}</Text>
-            <Text style={styles.cardSubtitle}>
-              Earned: ${monthlyEarnings.toFixed(0)} • Remaining: ${remaining > 0 ? remaining.toFixed(0) : 0}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Total Stats Section - All Time */}
+      {/* Total Earned & Goal Progress Section */}
       <View style={styles.totalStatsSection}>
         <Text style={styles.sectionTitle}>Total Earned So Far</Text>
 
         {/* Total Earnings Card */}
         <View style={styles.totalEarningsCard}>
           <View style={styles.totalEarningsHeader}>
-            <MaterialCommunityIcons name="cash-multiple" size={32} color={COLORS.primary} />
+            <MaterialCommunityIcons name="cash-multiple" size={32} color="#FFFFFF" />
             <Text style={styles.totalEarningsAmount}>${totalEarnings.toFixed(2)}</Text>
           </View>
           <Text style={styles.totalEarningsLabel}>All-time earnings</Text>
         </View>
 
-        {/* Stats Grid */}
-        <View style={styles.statsGrid}>
-          {/* Total Hours */}
-          <View style={styles.statCard}>
-            <View style={styles.statIconWrapper}>
-              <Feather name="clock" size={18} color="#FFF" />
-            </View>
-            <Text style={styles.statValue}>{totalHours.toFixed(1)}h</Text>
-            <Text style={styles.statLabel}>Total Hours</Text>
+        {/* Goal Progress Card */}
+        <View style={styles.goalProgressCard}>
+          <View style={styles.goalProgressHeader}>
+            <Ionicons name="flag" size={24} color={COLORS.primary} />
+            <Text style={styles.goalProgressTitle}>To Reach Your Goal</Text>
           </View>
 
-          {/* Total Shifts */}
-          <View style={[styles.statCard, styles.redStatCard]}>
-            <View style={styles.redStatIconWrapper}>
-              <MaterialCommunityIcons name="calendar-check" size={18} color="#FFF" />
+          <View style={styles.goalProgressStats}>
+            <View style={styles.goalProgressItem}>
+              <Ionicons name="cash-outline" size={20} color={COLORS.textSecondary} />
+              <Text style={styles.goalProgressLabel}>Remaining</Text>
+              <Text style={styles.goalProgressValue}>${remaining > 0 ? remaining.toFixed(0) : 0}</Text>
             </View>
-            <Text style={styles.statValue}>{totalShifts}</Text>
-            <Text style={styles.statLabel}>Total Shifts</Text>
-          </View>
-        </View>
 
-        {/* Average Per Shift */}
-        <View style={styles.performanceCard}>
-          <View style={styles.iconCircle}>
-            <MaterialCommunityIcons name="chart-line" size={24} color={COLORS.textPrimary} />
-          </View>
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Average Per Shift</Text>
-            <Text style={styles.cardSubtitle}>${averagePerShift} average earnings</Text>
+            <View style={styles.goalProgressSeparator} />
+
+            <View style={styles.goalProgressItem}>
+              <Feather name="clock" size={20} color={COLORS.textSecondary} />
+              <Text style={styles.goalProgressLabel}>Hours Needed</Text>
+              <Text style={styles.goalProgressValue}>{hoursNeeded.toFixed(1)}h</Text>
+            </View>
+
+            <View style={styles.goalProgressSeparator} />
+
+            <View style={styles.goalProgressItem}>
+              <MaterialCommunityIcons name="calendar-check" size={20} color={COLORS.textSecondary} />
+              <Text style={styles.goalProgressLabel}>Shifts Needed</Text>
+              <Text style={styles.goalProgressValue}>{shiftsNeeded}</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -389,10 +397,10 @@ const styles = StyleSheet.create({
     color: '#FFF',
   },
 
-  // Selected Day Container
-  selectedDayContainer: {
+  // Progress Container
+  progressContainer: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 40,
     position: 'relative',
   },
   circleWrapper: {
@@ -581,66 +589,51 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255,255,255,0.9)',
   },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: COLORS.darkCard,
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  redStatCard: {
-    backgroundColor: COLORS.primary,
-  },
-  statIconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  redStatIconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFF',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: COLORS.textLight,
-  },
 
-  // Performance Card
-  performanceCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  // Goal Progress Card
+  goalProgressCard: {
     backgroundColor: COLORS.cardBg,
     borderRadius: 16,
-    padding: 16,
+    padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 3,
+  },
+  goalProgressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  goalProgressTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+  },
+  goalProgressStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  goalProgressItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 6,
+  },
+  goalProgressSeparator: {
+    width: 1,
+    backgroundColor: COLORS.grayCard,
+    marginHorizontal: 8,
+  },
+  goalProgressLabel: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
+  goalProgressValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
   },
 });
