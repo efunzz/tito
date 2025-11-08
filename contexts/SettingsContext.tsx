@@ -1,11 +1,17 @@
 /**
- * Settings Context
+ * Settings Context - Phase 2: Supabase Sync
  * Provides centralized state management for user settings
  * All screens access the SAME settings from this context
+ *
+ * Architecture:
+ * - Context is the source of truth (in-memory state)
+ * - AsyncStorage provides local persistence (instant loading)
+ * - Supabase provides cloud sync (background operation)
  */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { storageService } from '../services/storage.service';
+import { databaseService } from '../services/database.service';
 
 // Define the shape of our context
 interface SettingsContextType {
@@ -56,7 +62,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     try {
       setLoading(true);
 
-      // Load all settings in parallel
+      // PHASE 1: Load from AsyncStorage (instant, offline-first)
       const [
         rate,
         goal,
@@ -71,12 +77,41 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
         storageService.getAutoClockOut(),
       ]);
 
+      // Update UI immediately with local data
       setHourlyRateState(rate);
       setMonthlyGoalState(goal);
       setWorkStartTimeState(workHours.start);
       setWorkEndTimeState(workHours.end);
       setNotificationsEnabledState(notifications);
       setAutoClockOutState(autoClockOutSetting);
+      setLoading(false); // UI is now interactive
+
+      // PHASE 2: Sync from Supabase (background)
+      const { data: cloudSettings, error } = await databaseService.getUserSettings();
+
+      if (!error && cloudSettings) {
+        // Update from Supabase (cloud is source of truth)
+        setHourlyRateState(cloudSettings.hourly_rate);
+        setMonthlyGoalState(cloudSettings.monthly_goal);
+
+        // Parse time strings (HH:MM:SS → HH:MM)
+        const startTime = cloudSettings.work_start_time.substring(0, 5);
+        const endTime = cloudSettings.work_end_time.substring(0, 5);
+        setWorkStartTimeState(startTime);
+        setWorkEndTimeState(endTime);
+
+        setNotificationsEnabledState(cloudSettings.notifications_enabled);
+        setAutoClockOutState(cloudSettings.auto_clock_out);
+
+        // Save to AsyncStorage
+        await Promise.all([
+          storageService.saveHourlyRate(cloudSettings.hourly_rate),
+          storageService.saveMonthlyGoal(cloudSettings.monthly_goal),
+          storageService.saveWorkHours(startTime, endTime),
+          storageService.saveNotificationsEnabled(cloudSettings.notifications_enabled),
+          storageService.saveAutoClockOut(cloudSettings.auto_clock_out),
+        ]);
+      }
     } catch (error) {
       console.error('Error loading settings:', error);
     } finally {
@@ -87,10 +122,14 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
   // Setting operations
   const setHourlyRate = async (rate: number) => {
     try {
+      // 1. Optimistic update
       setHourlyRateState(rate);
-      await storageService.saveHourlyRate(rate);
 
-      // TODO: Sync to Supabase in Phase 2
+      // 2. Save to AsyncStorage + Supabase in parallel
+      await Promise.allSettled([
+        storageService.saveHourlyRate(rate),
+        databaseService.updateHourlyRate(rate),
+      ]);
     } catch (error) {
       console.error('Error saving hourly rate:', error);
       throw error;
@@ -99,10 +138,14 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
 
   const setMonthlyGoal = async (goal: number) => {
     try {
+      // 1. Optimistic update
       setMonthlyGoalState(goal);
-      await storageService.saveMonthlyGoal(goal);
 
-      // TODO: Sync to Supabase in Phase 2
+      // 2. Save to AsyncStorage + Supabase in parallel
+      await Promise.allSettled([
+        storageService.saveMonthlyGoal(goal),
+        databaseService.updateMonthlyGoal(goal),
+      ]);
     } catch (error) {
       console.error('Error saving monthly goal:', error);
       throw error;
@@ -111,11 +154,19 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
 
   const setWorkHours = async (start: string, end: string) => {
     try {
+      // 1. Optimistic update
       setWorkStartTimeState(start);
       setWorkEndTimeState(end);
-      await storageService.saveWorkHours(start, end);
 
-      // TODO: Sync to Supabase in Phase 2
+      // 2. Save to AsyncStorage + Supabase in parallel
+      // Convert HH:MM to HH:MM:SS for database
+      const startTime = `${start}:00`;
+      const endTime = `${end}:00`;
+
+      await Promise.allSettled([
+        storageService.saveWorkHours(start, end),
+        databaseService.updateWorkHours(startTime, endTime),
+      ]);
     } catch (error) {
       console.error('Error saving work hours:', error);
       throw error;
@@ -124,8 +175,14 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
 
   const setNotificationsEnabled = async (enabled: boolean) => {
     try {
+      // 1. Optimistic update
       setNotificationsEnabledState(enabled);
-      await storageService.saveNotificationsEnabled(enabled);
+
+      // 2. Save to AsyncStorage + Supabase in parallel
+      await Promise.allSettled([
+        storageService.saveNotificationsEnabled(enabled),
+        databaseService.updateNotifications(enabled),
+      ]);
     } catch (error) {
       console.error('Error saving notifications setting:', error);
       throw error;
@@ -134,8 +191,14 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
 
   const setAutoClockOut = async (enabled: boolean) => {
     try {
+      // 1. Optimistic update
       setAutoClockOutState(enabled);
-      await storageService.saveAutoClockOut(enabled);
+
+      // 2. Save to AsyncStorage + Supabase in parallel
+      await Promise.allSettled([
+        storageService.saveAutoClockOut(enabled),
+        databaseService.updateAutoClockOut(enabled),
+      ]);
     } catch (error) {
       console.error('Error saving auto clock out setting:', error);
       throw error;
