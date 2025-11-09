@@ -72,6 +72,7 @@ export default function FeedbackModal({ visible, onClose }: FeedbackModalProps) 
   return (
     <BottomSheetModal visible={visible} onClose={onClose} title="Send Feedback" height={520}>
       <ScrollView
+        style={{ flex: 1 }}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}

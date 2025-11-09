@@ -269,7 +269,8 @@ export default function ExportDataModal({ visible, onClose }: ExportDataModalPro
 
   return (
     <BottomSheetModal visible={visible} onClose={onClose} title="Export Timesheet" height={380}>
-      <ScrollView 
+      <ScrollView
+        style={{ flex: 1 }}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >

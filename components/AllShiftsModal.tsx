@@ -53,6 +53,7 @@ export default function AllShiftsModal({ visible, onClose }: AllShiftsModalProps
   return (
     <BottomSheetModal visible={visible} onClose={onClose} title="All Shifts" height={600}>
       <ScrollView
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
