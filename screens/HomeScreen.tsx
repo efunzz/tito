@@ -1,24 +1,32 @@
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, ScrollView, Alert } from 'react-native';
 import { useState, useEffect } from 'react';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import AllShiftsModal from '../components/AllShiftsModal';
 
 // Import centralized theme and types
 import { COLORS } from '../constants/theme';
 import type { Status, Shift, TabParamList } from '../constants/types';
 
+// Import Context hooks
+import { useShifts } from '../contexts/ShiftsContext';
+
 type NavigationProp = NativeStackNavigationProp<TabParamList, 'Home'>;
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
+
+  // Get shifts from Context
+  const { shifts, addShift, deleteShift } = useShifts();
+
   const [status, setStatus] = useState<Status>('idle');
   const [clockInTime, setClockInTime] = useState<Date | null>(null);
   const [breakStartTime, setBreakStartTime] = useState<Date | null>(null);
   const [currentBreaks, setCurrentBreaks] = useState<{ start: string; end: string | null }[]>([]);
-  const [shifts, setShifts] = useState<Shift[]>([]);
   const [hourlyRate, setHourlyRate] = useState(15);
+  const [allShiftsModalVisible, setAllShiftsModalVisible] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -26,13 +34,12 @@ export default function HomeScreen() {
 
   const loadData = async () => {
     try {
-      const savedShifts = await AsyncStorage.getItem('shifts');
       const savedStatus = await AsyncStorage.getItem('status');
       const savedClockIn = await AsyncStorage.getItem('currentClockIn');
       const savedBreaks = await AsyncStorage.getItem('currentBreaks');
       const savedRate = await AsyncStorage.getItem('hourlyRate');
 
-      if (savedShifts) setShifts(JSON.parse(savedShifts));
+      // Shifts come from Context now
       if (savedStatus) setStatus(savedStatus as Status);
       if (savedClockIn) setClockInTime(new Date(savedClockIn));
       if (savedBreaks) setCurrentBreaks(JSON.parse(savedBreaks));
@@ -114,14 +121,14 @@ export default function HomeScreen() {
       earnings: parseFloat(earnings.toFixed(2)),
     };
 
-    const updatedShifts = [...shifts, newShift];
-    setShifts(updatedShifts);
+    // Save shift using Context (handles AsyncStorage + Supabase sync)
+    await addShift(newShift);
+
     setClockInTime(null);
     setBreakStartTime(null);
     setCurrentBreaks([]);
     setStatus('idle');
 
-    await AsyncStorage.setItem('shifts', JSON.stringify(updatedShifts));
     await AsyncStorage.removeItem('status');
     await AsyncStorage.removeItem('currentClockIn');
     await AsyncStorage.removeItem('currentBreaks');
@@ -312,31 +319,60 @@ export default function HomeScreen() {
           <View style={styles.shiftsSection}>
             <View style={styles.shiftsSectionHeader}>
               <Text style={styles.shiftsTitle}>Recent Shifts</Text>
-              <Text style={styles.shiftsCount}>{shifts.length}</Text>
+              <TouchableOpacity
+                style={styles.shiftsCountBadge}
+                onPress={() => setAllShiftsModalVisible(true)}
+              >
+                <Text style={styles.shiftsCount}>{shifts.length}</Text>
+                <Feather name="chevron-right" size={16} color={COLORS.textSecondary} />
+              </TouchableOpacity>
             </View>
-            
+
             {shifts.slice(-3).reverse().map((shift) => (
               <View key={shift.id} style={styles.shiftCard}>
                 <View style={styles.shiftHeader}>
-                  <Text style={styles.shiftDate}>{shift.date}</Text>
-                  <View style={styles.earningsBadge}>
-                    <Text style={styles.earningsText}>${shift.earnings.toFixed(2)}</Text>
+                  <View>
+                    <Text style={styles.shiftDate}>{shift.date}</Text>
+                    <View style={styles.shiftDetails}>
+                      <View style={styles.shiftDetailItem}>
+                        <Feather name="clock" size={14} color={COLORS.textSecondary} />
+                        <Text style={styles.shiftDetailText}>
+                          {shift.clockIn} - {shift.clockOut}
+                        </Text>
+                      </View>
+
+                      <View style={styles.shiftDetailItem}>
+                        <Feather name="activity" size={14} color={COLORS.textSecondary} />
+                        <Text style={styles.shiftDetailText}>
+                          {shift.totalHours}h @ ${shift.hourlyRate}/hr
+                        </Text>
+                      </View>
+                    </View>
                   </View>
-                </View>
-                
-                <View style={styles.shiftDetails}>
-                  <View style={styles.shiftDetailItem}>
-                    <Feather name="clock" size={14} color={COLORS.textSecondary} />
-                    <Text style={styles.shiftDetailText}>
-                      {shift.clockIn} - {shift.clockOut}
-                    </Text>
-                  </View>
-                  
-                  <View style={styles.shiftDetailItem}>
-                    <Feather name="activity" size={14} color={COLORS.textSecondary} />
-                    <Text style={styles.shiftDetailText}>
-                      {shift.totalHours}h @ ${shift.hourlyRate}/hr
-                    </Text>
+
+                  <View style={styles.shiftActions}>
+                    <View style={styles.earningsBadge}>
+                      <Text style={styles.earningsText}>${shift.earnings.toFixed(2)}</Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => {
+                        Alert.alert(
+                          'Delete Shift',
+                          `Delete shift from ${shift.date}?`,
+                          [
+                            { text: 'Cancel', style: 'cancel' },
+                            {
+                              text: 'Delete',
+                              style: 'destructive',
+                              onPress: () => deleteShift(shift.id),
+                            },
+                          ]
+                        );
+                      }}
+                    >
+                      <Feather name="trash-2" size={16} color={COLORS.primary} />
+                    </TouchableOpacity>
                   </View>
                 </View>
               </View>
@@ -344,6 +380,12 @@ export default function HomeScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* All Shifts Modal */}
+      <AllShiftsModal
+        visible={allShiftsModalVisible}
+        onClose={() => setAllShiftsModalVisible(false)}
+      />
     </View>
   );
 }
@@ -512,14 +554,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.textPrimary,
   },
+  shiftsCountBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.cardBg,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
   shiftsCount: {
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.textSecondary,
-    backgroundColor: COLORS.cardBg,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
   },
   shiftCard: {
     backgroundColor: COLORS.cardBg,
@@ -535,13 +582,18 @@ const styles = StyleSheet.create({
   shiftHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+    alignItems: 'flex-start',
   },
   shiftDate: {
     fontSize: 15,
     fontWeight: '600',
     color: COLORS.textPrimary,
+    marginBottom: 8,
+  },
+  shiftActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   earningsBadge: {
     backgroundColor: COLORS.background,
@@ -553,6 +605,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.primary,
+  },
+  deleteButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   shiftDetails: {
     gap: 8,

@@ -25,42 +25,60 @@ export default function DetailsScreen() {
 
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]); // ISO format
   const [weekDays, setWeekDays] = useState<WeekDay[]>([]);
+  const [weekOffset, setWeekOffset] = useState<number>(0); // 0 = current week, -1 = last week, +1 = next week
 
   // Load data when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
-      generateWeekDays();
-    }, [])
+      generateWeekDays(weekOffset);
+    }, [weekOffset])
   );
 
-  // Generate current week days
-  const generateWeekDays = () => {
+  // Generate week days with offset (0 = current, -1 = previous, +1 = next)
+  const generateWeekDays = (offset: number = 0) => {
     const today = new Date();
     const currentDay = today.getDay(); // 0 = Sunday, 6 = Saturday
     const weekStart = new Date(today);
-    
-    // Go back to Saturday (start of week)
-    weekStart.setDate(today.getDate() - currentDay - 1);
-    
+
+    // Go back to Saturday (start of week) + offset weeks
+    weekStart.setDate(today.getDate() - currentDay - 1 + (offset * 7));
+
     const days: WeekDay[] = [];
     const dayNames = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-    
+    const todayISO = today.toISOString().split('T')[0];
+
     for (let i = 0; i < 7; i++) {
       const date = new Date(weekStart);
       date.setDate(weekStart.getDate() + i);
-      
+
       const fullDate = date.toISOString().split('T')[0]; // ISO format: "2024-11-02"
-      const todayISO = today.toISOString().split('T')[0];
-      
+
       days.push({
         day: dayNames[i],
         date: date.getDate(),
         fullDate: fullDate,
-        active: fullDate === todayISO,
+        active: fullDate === selectedDate,
       });
     }
-    
+
     setWeekDays(days);
+  };
+
+  // Navigate to previous week
+  const handlePreviousWeek = () => {
+    setWeekOffset(prev => prev - 1);
+  };
+
+  // Navigate to next week
+  const handleNextWeek = () => {
+    setWeekOffset(prev => prev + 1);
+  };
+
+  // Reset to current week
+  const handleToday = () => {
+    const today = new Date().toISOString().split('T')[0];
+    setSelectedDate(today);
+    setWeekOffset(0);
   };
 
   // Calculate earnings and hours for selected date
@@ -171,14 +189,22 @@ export default function DetailsScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Week Calendar Strip */}
-      <View style={styles.weekStrip}>
-        {weekDays.map((item: WeekDay, index: number) => (
-          <TouchableOpacity 
-            key={index} 
-            style={styles.dayContainer}
-            onPress={() => handleDateSelect(item)}
-          >
+      {/* Week Calendar Strip with Navigation */}
+      <View style={styles.weekNavigationContainer}>
+        <TouchableOpacity
+          style={styles.weekNavButton}
+          onPress={handlePreviousWeek}
+        >
+          <Feather name="chevron-left" size={24} color={COLORS.textPrimary} />
+        </TouchableOpacity>
+
+        <View style={styles.weekStrip}>
+          {weekDays.map((item: WeekDay, index: number) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.dayContainer}
+              onPress={() => handleDateSelect(item)}
+            >
             <Text style={[styles.dayText, item.active && styles.activeDayText]}>
               {item.day}
             </Text>
@@ -189,7 +215,28 @@ export default function DetailsScreen() {
             </View>
           </TouchableOpacity>
         ))}
+        </View>
+
+        <TouchableOpacity
+          style={styles.weekNavButton}
+          onPress={handleNextWeek}
+        >
+          <Feather name="chevron-right" size={24} color={COLORS.textPrimary} />
+        </TouchableOpacity>
       </View>
+
+      {/* Today Button (when viewing other weeks) */}
+      {weekOffset !== 0 && (
+        <View style={styles.todayButtonContainer}>
+          <TouchableOpacity
+            style={styles.todayButton}
+            onPress={handleToday}
+          >
+            <Feather name="calendar" size={16} color="#FFFFFF" />
+            <Text style={styles.todayButtonText}>Today</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Monthly Goal Progress Circle */}
       <View style={styles.progressContainer}>
@@ -352,12 +399,55 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
 
-  // Week Strip
+  // Week Navigation
+  weekNavigationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    marginBottom: 24,
+    gap: 8,
+  },
+  weekNavButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.cardBg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
   weekStrip: {
+    flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 32,
+    paddingHorizontal: 8,
+  },
+  todayButtonContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  todayButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  todayButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   dayContainer: {
     alignItems: 'center',
