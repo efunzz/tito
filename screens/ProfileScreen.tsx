@@ -298,6 +298,44 @@ export default function ProfileScreen() {
         <Text style={styles.logoutText}>Sign Out</Text>
       </TouchableOpacity>
 
+      {/* Clear All Data Button (DEV ONLY - Remove before production) */}
+      <TouchableOpacity
+        style={styles.clearDataButton}
+        onPress={() => {
+          Alert.alert(
+            'Clear All Data',
+            'Delete ALL shifts and reset app? This cannot be undone!',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Delete All',
+                style: 'destructive',
+                onPress: async () => {
+                  // Clear all shifts from Supabase
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (user) {
+                    const { error } = await supabase
+                      .from('shifts')
+                      .delete()
+                      .eq('user_id', user.id);
+
+                    if (error) {
+                      Alert.alert('Error', 'Failed to clear data');
+                    } else {
+                      Alert.alert('Success', 'All data cleared!');
+                      // Refresh will happen automatically via Context
+                    }
+                  }
+                },
+              },
+            ]
+          );
+        }}
+      >
+        <Feather name="trash-2" size={20} color="#FF3B30" />
+        <Text style={styles.clearDataText}>Clear All Data (DEV)</Text>
+      </TouchableOpacity>
+
       <View style={{ height: 100 }} />
 
       {/* Modals */}
@@ -540,5 +578,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.primary,
+  },
+
+  // Clear Data Button (DEV)
+  clearDataButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 20,
+    marginTop: 12,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#FF3B30',
+    shadowColor: '#FF3B30',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  clearDataText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FF3B30',
   },
 });
