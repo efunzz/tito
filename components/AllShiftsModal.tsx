@@ -98,7 +98,7 @@ export default function AllShiftsModal({ visible, onClose }: AllShiftsModalProps
                 <View style={styles.shiftDetailItem}>
                   <Feather name="dollar-sign" size={14} color={COLORS.textSecondary} />
                   <Text style={styles.shiftDetailText}>
-                    ${shift.hourlyRate}/hr
+                    {shift.hourlyRate}/hr
                   </Text>
                 </View>
 
