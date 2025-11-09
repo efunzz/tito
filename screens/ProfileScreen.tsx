@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import HourlyRateModal from '../components/HourlyRateModal';
 import MonthlyGoalModal from '../components/MonthlyGoalModal';
@@ -311,20 +312,28 @@ export default function ProfileScreen() {
                 text: 'Delete All',
                 style: 'destructive',
                 onPress: async () => {
-                  // Clear all shifts from Supabase
-                  const { data: { user } } = await supabase.auth.getUser();
-                  if (user) {
-                    const { error } = await supabase
-                      .from('shifts')
-                      .delete()
-                      .eq('user_id', user.id);
+                  try {
+                    // Clear all shifts from Supabase
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                      const { error } = await supabase
+                        .from('shifts')
+                        .delete()
+                        .eq('user_id', user.id);
 
-                    if (error) {
-                      Alert.alert('Error', 'Failed to clear data');
-                    } else {
-                      Alert.alert('Success', 'All data cleared!');
-                      // Refresh will happen automatically via Context
+                      if (error) {
+                        Alert.alert('Error', 'Failed to clear Supabase data');
+                        return;
+                      }
                     }
+
+                    // Clear all AsyncStorage data (local shifts)
+                    await AsyncStorage.removeItem('shifts');
+
+                    Alert.alert('Success', 'All data cleared! Pull down to refresh.');
+                  } catch (error) {
+                    console.error('Error clearing data:', error);
+                    Alert.alert('Error', 'Failed to clear data');
                   }
                 },
               },
