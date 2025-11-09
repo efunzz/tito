@@ -11,6 +11,7 @@ import DetailsScreen from './screens/DetailsScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import LoginScreen from './screens/LoginScreen';
 import SignUpScreen from './screens/SignupScreen';
+import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen';
 
 import { supabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
@@ -133,7 +134,10 @@ export default function App() {
               </>
             ) : (
               // Main App - shown when logged in (wrapped with Context)
-              <Stack.Screen name="MainApp" component={RootTabs} />
+              <>
+                <Stack.Screen name="MainApp" component={RootTabs} />
+                <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+              </>
             )}
           </Stack.Navigator>
         </NavigationContainer>

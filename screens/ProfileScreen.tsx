@@ -1,14 +1,14 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useState, useEffect } from 'react';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Alert } from 'react-native';
 import { supabase } from '../lib/supabase';
 import HourlyRateModal from '../components/HourlyRateModal';
 import MonthlyGoalModal from '../components/MonthlyGoalModal';
 import WorkHoursModal from '../components/WorkHoursModal';
 import ExportDataModal from '../components/ExportDataModal';
+import FeedbackModal from '../components/FeedbackModal';
 
 // Import centralized types and theme
 import { COLORS } from '../constants/theme';
@@ -82,6 +82,7 @@ export default function ProfileScreen() {
   const [monthlyGoalModalVisible, setMonthlyGoalModalVisible] = useState<boolean>(false);
   const [workHoursModalVisible, setWorkHoursModalVisible] = useState<boolean>(false);
   const [exportDataModalVisible, setExportDataModalVisible] = useState<boolean>(false);
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState<boolean>(false);
 
   // Calculate stats from shifts
   const totalHours = shifts.reduce((sum, shift) => sum + shift.totalHours, 0);
@@ -243,44 +244,12 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* App Settings Section */}
+      {/* Other Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>App Settings</Text>
-        
-        <View style={styles.menuItem}>
-          <View style={styles.menuIconWrapper}>
-            <Ionicons name="notifications-outline" size={20} color={COLORS.textPrimary} />
-          </View>
-          <View style={styles.menuContent}>
-            <Text style={styles.menuTitle}>Notifications</Text>
-            <Text style={styles.menuSubtitle}>Break and shift reminders</Text>
-          </View>
-          <Switch
-            value={notificationsEnabled}
-            onValueChange={setNotificationsEnabled}
-            trackColor={{ false: COLORS.grayCard, true: COLORS.primary }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-
-        <View style={styles.menuItem}>
-          <View style={styles.menuIconWrapper}>
-            <MaterialCommunityIcons name="clock-alert-outline" size={20} color={COLORS.textPrimary} />
-          </View>
-          <View style={styles.menuContent}>
-            <Text style={styles.menuTitle}>Auto Clock Out</Text>
-            <Text style={styles.menuSubtitle}>After 12 hours</Text>
-          </View>
-          <Switch
-            value={autoClockOut}
-            onValueChange={setAutoClockOut}
-            trackColor={{ false: COLORS.grayCard, true: COLORS.primary }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
+        <Text style={styles.sectionTitle}>Other</Text>
 
         {/* Export Data - Dark accent (important action) */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.menuItem}
           onPress={() => setExportDataModalVisible(true)}
         >
@@ -293,41 +262,31 @@ export default function ProfileScreen() {
           </View>
           <Feather name="chevron-right" size={20} color={COLORS.textLight} />
         </TouchableOpacity>
-      </View>
 
-      {/* Other Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Other</Text>
-        
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => setFeedbackModalVisible(true)}
+        >
           <View style={styles.menuIconWrapper}>
-            <Feather name="help-circle" size={20} color={COLORS.textPrimary} />
+            <MaterialCommunityIcons name="email-outline" size={20} color={COLORS.textPrimary} />
           </View>
           <View style={styles.menuContent}>
-            <Text style={styles.menuTitle}>Help & Support</Text>
-            <Text style={styles.menuSubtitle}>FAQs and contact us</Text>
+            <Text style={styles.menuTitle}>Send Feedback</Text>
+            <Text style={styles.menuSubtitle}>Share your thoughts with us</Text>
           </View>
           <Feather name="chevron-right" size={20} color={COLORS.textLight} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('PrivacyPolicy')}
+        >
           <View style={styles.menuIconWrapper}>
             <Feather name="shield" size={20} color={COLORS.textPrimary} />
           </View>
           <View style={styles.menuContent}>
             <Text style={styles.menuTitle}>Privacy Policy</Text>
             <Text style={styles.menuSubtitle}>How we protect your data</Text>
-          </View>
-          <Feather name="chevron-right" size={20} color={COLORS.textLight} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={styles.menuIconWrapper}>
-            <Feather name="info" size={20} color={COLORS.textPrimary} />
-          </View>
-          <View style={styles.menuContent}>
-            <Text style={styles.menuTitle}>About</Text>
-            <Text style={styles.menuSubtitle}>Version 1.0.0</Text>
           </View>
           <Feather name="chevron-right" size={20} color={COLORS.textLight} />
         </TouchableOpacity>
@@ -367,6 +326,11 @@ export default function ProfileScreen() {
       <ExportDataModal
         visible={exportDataModalVisible}
         onClose={() => setExportDataModalVisible(false)}
+      />
+
+      <FeedbackModal
+        visible={feedbackModalVisible}
+        onClose={() => setFeedbackModalVisible(false)}
       />
     </ScrollView>
   );

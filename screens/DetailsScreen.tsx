@@ -220,10 +220,10 @@ export default function DetailsScreen() {
             />
           </Svg>
 
-          {/* Center content - Monthly Progress */}
+          {/* Center content - Selected Day Earnings */}
           <View style={styles.centerContent}>
-            <Text style={styles.mainAmount}>${monthlyEarnings.toFixed(0)}</Text>
-            <Text style={styles.goalSubtext}>of ${monthlyGoal.toLocaleString()}</Text>
+            <Text style={styles.mainAmount}>${selectedDateEarnings.toFixed(2)}</Text>
+            <Text style={styles.goalSubtext}>earned this day</Text>
           </View>
         </View>
 
@@ -276,35 +276,30 @@ export default function DetailsScreen() {
           <Text style={styles.totalEarningsLabel}>All-time earnings</Text>
         </View>
 
-        {/* Goal Progress Card */}
-        <View style={styles.goalProgressCard}>
-          <View style={styles.goalProgressHeader}>
-            <Ionicons name="flag" size={24} color={COLORS.primary} />
-            <Text style={styles.goalProgressTitle}>To Reach Your Goal</Text>
+        {/* Goal Progress Section Title */}
+        <Text style={styles.goalSectionTitle}>To Reach Your Goal</Text>
+
+        {/* 3-Column Grid of Goal Cards */}
+        <View style={styles.goalCardsGrid}>
+          {/* Card 1: Remaining */}
+          <View style={styles.goalCard}>
+            <Ionicons name="cash-outline" size={24} color={COLORS.primary} />
+            <Text style={styles.goalCardValue}>${remaining > 0 ? remaining.toFixed(0) : 0}</Text>
+            <Text style={styles.goalCardLabel}>Remaining</Text>
           </View>
 
-          <View style={styles.goalProgressStats}>
-            <View style={styles.goalProgressItem}>
-              <Ionicons name="cash-outline" size={20} color={COLORS.textSecondary} />
-              <Text style={styles.goalProgressLabel}>Remaining</Text>
-              <Text style={styles.goalProgressValue}>${remaining > 0 ? remaining.toFixed(0) : 0}</Text>
-            </View>
+          {/* Card 2: Hours Needed */}
+          <View style={styles.goalCard}>
+            <Feather name="clock" size={24} color={COLORS.primary} />
+            <Text style={styles.goalCardValue}>{hoursNeeded.toFixed(1)}h</Text>
+            <Text style={styles.goalCardLabel}>Hours Needed</Text>
+          </View>
 
-            <View style={styles.goalProgressSeparator} />
-
-            <View style={styles.goalProgressItem}>
-              <Feather name="clock" size={20} color={COLORS.textSecondary} />
-              <Text style={styles.goalProgressLabel}>Hours Needed</Text>
-              <Text style={styles.goalProgressValue}>{hoursNeeded.toFixed(1)}h</Text>
-            </View>
-
-            <View style={styles.goalProgressSeparator} />
-
-            <View style={styles.goalProgressItem}>
-              <MaterialCommunityIcons name="calendar-check" size={20} color={COLORS.textSecondary} />
-              <Text style={styles.goalProgressLabel}>Shifts Needed</Text>
-              <Text style={styles.goalProgressValue}>{shiftsNeeded}</Text>
-            </View>
+          {/* Card 3: Shifts Needed */}
+          <View style={styles.goalCard}>
+            <MaterialCommunityIcons name="calendar-check" size={24} color={COLORS.primary} />
+            <Text style={styles.goalCardValue}>{shiftsNeeded}</Text>
+            <Text style={styles.goalCardLabel}>Shifts Needed</Text>
           </View>
         </View>
       </View>
@@ -590,50 +585,43 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.9)',
   },
 
-  // Goal Progress Card
-  goalProgressCard: {
-    backgroundColor: COLORS.cardBg,
+  // Goal Section Title
+  goalSectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+    marginTop: 20,
+    marginBottom: 12,
+  },
+
+  // 3-Column Grid Layout
+  goalCardsGrid: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  goalCard: {
+    flex: 1,
+    backgroundColor: COLORS.darkCard,
     borderRadius: 16,
-    padding: 20,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
-    shadowRadius: 12,
+    shadowRadius: 8,
     elevation: 3,
   },
-  goalProgressHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
-  },
-  goalProgressTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  goalProgressStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  goalProgressItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 6,
-  },
-  goalProgressSeparator: {
-    width: 1,
-    backgroundColor: COLORS.grayCard,
-    marginHorizontal: 8,
-  },
-  goalProgressLabel: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-  },
-  goalProgressValue: {
-    fontSize: 18,
+  goalCardValue: {
+    fontSize: 20,
     fontWeight: '700',
-    color: COLORS.textPrimary,
+    color: '#FFFFFF',
+  },
+  goalCardLabel: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.7)',
+    textAlign: 'center',
   },
 });

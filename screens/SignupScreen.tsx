@@ -8,11 +8,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Image,
   StatusBar,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 
 // Import centralized theme
@@ -60,31 +58,17 @@ export default function SignUpScreen({ navigation }: any) {
       }
 
       console.log('✅ Sign up successful!', data.user?.email);
-      
+
       Alert.alert(
-        'Success!', 
+        'Success!',
         'Account created successfully!',
         [{ text: 'OK' }]
       );
-      
+
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Something went wrong');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleSocialLogin = async (provider: 'google' | 'apple' | 'facebook') => {
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
-      });
-
-      if (error) {
-        Alert.alert('Error', error.message);
-      }
-    } catch (error: any) {
-      Alert.alert('Error', error.message);
     }
   };
 
@@ -101,15 +85,16 @@ export default function SignUpScreen({ navigation }: any) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Logo & Header */}
+          {/* Tito Branding */}
           <View style={styles.header}>
-            <Image 
-              source={require('../assets/tito-icon.png')} 
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={styles.title}>Tito</Text>
-            <Text style={styles.subtitle}>Create your account</Text>
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoText}>t</Text>
+              <View style={styles.iContainer}>
+                <View style={styles.redDot} />
+                <Text style={styles.logoText}>i</Text>
+              </View>
+              <Text style={styles.logoText}>to</Text>
+            </View>
           </View>
 
           {/* Email/Password Form */}
@@ -187,42 +172,11 @@ export default function SignUpScreen({ navigation }: any) {
 
             <View style={styles.loginContainer}>
               <Text style={styles.loginText}>Already have an account? </Text>
-              <TouchableOpacity 
-                onPress={() => navigation.navigate('Login')} 
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Login')}
                 disabled={loading}
               >
                 <Text style={styles.loginLink}>Sign In</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or continue with</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Social Login Icons Row */}
-            <View style={styles.socialIconsRow}>
-              <TouchableOpacity 
-                style={styles.socialIconButton}
-                onPress={() => handleSocialLogin('google')}
-              >
-                <Ionicons name="logo-google" size={24} color={COLORS.textPrimary} />
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.socialIconButton}
-                onPress={() => handleSocialLogin('apple')}
-              >
-                <Ionicons name="logo-apple" size={24} color={COLORS.textPrimary} />
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.socialIconButton}
-                onPress={() => handleSocialLogin('facebook')}
-              >
-                <Ionicons name="logo-facebook" size={24} color={COLORS.textPrimary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -249,23 +203,31 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 56,
   },
-  logo: {
-    width: 80,
-    height: 80,
-    marginBottom: 16,
+  // Tito branding styles
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
   },
-  title: {
-    fontSize: 32,
+  logoText: {
+    fontSize: 48,
     fontWeight: '600',
     color: COLORS.textPrimary,
-    marginBottom: 8,
+    letterSpacing: -1,
   },
-  subtitle: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    fontWeight: '400',
+  iContainer: {
+    position: 'relative',
+  },
+  redDot: {
+    position: 'absolute',
+    top: 10,
+    left: 1,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.primary,
+    zIndex: 1,
   },
   formCard: {
     backgroundColor: COLORS.cardBg,
@@ -337,40 +299,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.primary,
     fontWeight: '600',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 32,
-    marginBottom: 24,
-    gap: 12,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.textSecondary,
-    opacity: 0.2,
-  },
-  dividerText: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-  },
-  socialIconsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  socialIconButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
   },
 });

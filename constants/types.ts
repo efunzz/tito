@@ -48,6 +48,7 @@ export type RootStackParamList = {
   Login: undefined;
   SignUp: undefined;
   MainApp: undefined;
+  PrivacyPolicy: undefined;
   // Also include tab screens for easier type access
   Home: undefined;
   Details: undefined;
