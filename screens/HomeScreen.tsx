@@ -132,8 +132,6 @@ export default function HomeScreen() {
     await AsyncStorage.removeItem('status');
     await AsyncStorage.removeItem('currentClockIn');
     await AsyncStorage.removeItem('currentBreaks');
-
-    console.log('Shift saved:', newShift);
   };
 
   const today = new Date().toISOString().split('T')[0];

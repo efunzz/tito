@@ -42,7 +42,7 @@ export default function SignUpScreen({ navigation }: any) {
     setLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email: email.trim(),
         password: password,
         options: {
@@ -56,8 +56,6 @@ export default function SignUpScreen({ navigation }: any) {
         Alert.alert('Sign Up Failed', error.message);
         return;
       }
-
-      console.log('✅ Sign up successful!', data.user?.email);
 
       Alert.alert(
         'Success!',

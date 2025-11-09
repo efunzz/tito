@@ -30,7 +30,7 @@ export default function LoginScreen({ navigation }: any) {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password,
       });
@@ -39,8 +39,6 @@ export default function LoginScreen({ navigation }: any) {
         Alert.alert('Login Failed', error.message);
         return;
       }
-
-      console.log('✅ Login successful!', data.user?.email);
 
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Something went wrong');
