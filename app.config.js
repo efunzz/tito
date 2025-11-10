@@ -27,10 +27,13 @@ module.exports = {
     web: {
       favicon: "./assets/favicon.png"
     },
+    // Deep linking scheme for OAuth callbacks
+    scheme: "com.irfansofyan.tito",
     // Make environment variables available to the app
     extra: {
       supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
       supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+      googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
     }
   }
 };

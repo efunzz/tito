@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
+import { useGoogleAuth } from '../hooks/useGoogleAuth';
 
 // Import centralized theme
 import { COLORS } from '../constants/theme';
@@ -22,6 +23,7 @@ export default function SignUpScreen({ navigation }: any) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const { signInWithGoogle, loading: googleLoading } = useGoogleAuth();
 
   const handleSignUp = async () => {
     if (!email || !password || !confirmPassword || !name) {
@@ -164,6 +166,24 @@ export default function SignUpScreen({ navigation }: any) {
               </Text>
             </TouchableOpacity>
 
+            {/* Divider */}
+            <View style={styles.dividerContainer}>
+              <View style={styles.divider} />
+              <Text style={styles.dividerText}>OR</Text>
+              <View style={styles.divider} />
+            </View>
+
+            {/* Google Sign-In Button */}
+            <TouchableOpacity
+              style={[styles.googleButton, googleLoading && styles.buttonDisabled]}
+              onPress={signInWithGoogle}
+              disabled={loading || googleLoading}
+            >
+              <Text style={styles.googleButtonText}>
+                {googleLoading ? 'Signing in...' : 'Continue with Google'}
+              </Text>
+            </TouchableOpacity>
+
             <Text style={styles.termsText}>
               By signing up, you agree to our Terms of Service and Privacy Policy
             </Text>
@@ -297,5 +317,43 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.primary,
     fontWeight: '600',
+  },
+  // Divider styles
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.grayCard,
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+  },
+  // Google button styles
+  googleButton: {
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 16,
+    padding: 18,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.grayCard,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  googleButtonText: {
+    color: COLORS.textPrimary,
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
 });
