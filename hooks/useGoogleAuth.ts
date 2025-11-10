@@ -15,7 +15,7 @@ export const useGoogleAuth = () => {
     try {
       // Create redirect URI for OAuth callback
       const redirectUri = makeRedirectUri({
-        scheme: 'com.irfansofyan.tito',
+        scheme: 'com.tito.app',
       });
 
       // Initiate OAuth flow with Supabase

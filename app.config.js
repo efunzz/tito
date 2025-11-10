@@ -28,7 +28,7 @@ module.exports = {
       favicon: "./assets/favicon.png"
     },
     // Deep linking scheme for OAuth callbacks
-    scheme: "com.irfansofyan.tito",
+    scheme: "com.tito.app",
     // Make environment variables available to the app
     extra: {
       supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
