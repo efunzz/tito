@@ -31,6 +31,9 @@ module.exports = {
     scheme: "com.tito.app",
     // Make environment variables available to the app
     extra: {
+      eas: {
+        projectId: "de5545ab-70f0-476f-9bd6-c90089be4759"
+      },
       supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
       supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
       googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
