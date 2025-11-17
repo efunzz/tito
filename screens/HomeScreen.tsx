@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
   },
   redDot: {
     position: 'absolute',
-    top: 4,
+    top: 6,
     left: 1,
     width: 5,
     height: 5,

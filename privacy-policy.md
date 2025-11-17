@@ -74,13 +74,11 @@ You have the right to:
 - **Revoke Access**: Disconnect Google Sign-In authorization at any time
 
 ### How to Delete Your Data
-To delete your account and all data:
-1. Open Tito app
-2. Go to Settings
-3. Select "Delete Account"
-4. Confirm deletion
+To delete your account and all data, email us at madebyarv@gmail.com with:
+- Subject: "Tito Account Deletion Request"
+- Include the email address associated with your Tito account
 
-Alternatively, email us at madebyarv@gmail.com to request account deletion.
+We will process your request within 7 business days and confirm once deletion is complete.
 
 ## Children's Privacy
 

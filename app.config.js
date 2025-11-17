@@ -7,7 +7,7 @@ module.exports = {
     slug: "tito",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/icon.png",
+    icon: "./assets/tito-icon.png",
     userInterfaceStyle: "light",
     newArchEnabled: true,
     splash: {
@@ -19,16 +19,36 @@ module.exports = {
       supportsTablet: true
     },
     android: {
+      package: "com.tito.app",
+      versionCode: 1,
       adaptiveIcon: {
-        foregroundImage: "./assets/adaptive-icon.png",
+        foregroundImage: "./assets/tito-icon.png",
         backgroundColor: "#ffffff"
-      }
+      },
+      edgeToEdgeEnabled: true,
+      predictiveBackGestureEnabled: false,
+      intentFilters: [
+        {
+          action: "VIEW",
+          autoVerify: true,
+          data: [
+            {
+              scheme: "com.tito.app"
+            }
+          ],
+          category: ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     web: {
       favicon: "./assets/favicon.png"
     },
     // Deep linking scheme for OAuth callbacks
     scheme: "com.tito.app",
+    // Expo plugins
+    plugins: [
+      "expo-font"
+    ],
     // Make environment variables available to the app
     extra: {
       eas: {
