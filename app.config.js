@@ -19,7 +19,7 @@ module.exports = {
       supportsTablet: true
     },
     android: {
-      package: "com.tito.app",
+      package: "com.efunzz.tito",
       versionCode: 1,
       adaptiveIcon: {
         foregroundImage: "./assets/tito-icon.png",
@@ -33,7 +33,7 @@ module.exports = {
           autoVerify: true,
           data: [
             {
-              scheme: "com.tito.app"
+              scheme: "com.efunzz.tito"
             }
           ],
           category: ["BROWSABLE", "DEFAULT"]
@@ -44,7 +44,7 @@ module.exports = {
       favicon: "./assets/favicon.png"
     },
     // Deep linking scheme for OAuth callbacks
-    scheme: "com.tito.app",
+    scheme: "com.efunzz.tito",
     // Expo plugins
     plugins: [
       "expo-font"
