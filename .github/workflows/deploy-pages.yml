@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'privacy-policy.md'
+      - 'privacy-policy.html'
       - 'delete-account.html'
   workflow_dispatch:
 
