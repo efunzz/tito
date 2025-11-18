@@ -8,6 +8,8 @@ on:
       - 'privacy-policy.md'
       - 'privacy-policy.html'
       - 'delete-account.html'
+      - '.nojekyll'
+      - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
 permissions:
@@ -22,13 +24,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare deployment files
+        run: |
+          mkdir _site
+          cp privacy-policy.html _site/
+          cp delete-account.html _site/
+          cp .nojekyll _site/
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment
