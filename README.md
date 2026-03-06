@@ -90,5 +90,12 @@ To run the project locally, follow these steps:
 3. Start the development server: npx expo start
 4. Run on device or simulator: npx expo start --ios , npx expo start --android
    
-## 🍿 Demo / Video
+## 🍿 App screenshots
+![app-screenshots](https://github.com/user-attachments/assets/bad37d1e-e0d9-48aa-93d4-9b90ddb7f497)
+
+
+
+https://github.com/user-attachments/assets/5d8a8c9a-fae6-46a7-9342-1fefb940d0df
+
+
 🎥 Video demo and screenshots coming soon. Currently in closed beta testing on Google Play Store.
