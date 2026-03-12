@@ -98,4 +98,3 @@ To run the project locally, follow these steps:
 https://github.com/user-attachments/assets/5d8a8c9a-fae6-46a7-9342-1fefb940d0df
 
 
-🎥 Video demo and screenshots coming soon. Currently in closed beta testing on Google Play Store.
